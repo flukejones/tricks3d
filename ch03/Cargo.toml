@@ -1,0 +1,19 @@
+[package]
+name = "ch03"
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "ch03_1"
+path = "src/main_1.rs"
+
+[dependencies]
+sdl2.workspace = true
+log.workspace = true
+simplelog.workspace = true
+argh.workspace = true
+buffer.workspace = true
+timestep.workspace = true

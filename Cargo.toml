@@ -1,0 +1,40 @@
+[workspace]
+members = [ "buffer",
+    "ch01", "ch02", "ch03", "timestep",
+]
+resolver = "2"
+
+[workspace.package]
+authors = ["Luke Jones <luke@ljones.dev>"]
+version = "0.15.3"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+
+[workspace.dependencies]
+math = { path = "./math" }
+buffer = { path = "./buffer" }
+timestep = { path = "./timestep" }
+sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2", features = ["unsafe_textures"] }
+argh = "0.1.12"
+log = { version = "*" }
+simplelog = { version = "*" }
+
+[profile.release]
+lto = true
+debug = false
+opt-level = 3
+panic = "abort"
+strip = true
+codegen-units = 1
+
+[profile.dev]
+debug = true
+opt-level = 3
+codegen-units = 1
+
+[profile.bench]
+lto = true
+debug = true
+opt-level = 3
+codegen-units = 1
