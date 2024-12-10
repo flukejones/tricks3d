@@ -1,0 +1,302 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Multiplayer Section - What is Lag?</TITLE>
+<META NAME="DESCRIPTION" CONTENT="An informative overview which answers questions about multiplayer gaming over the internet.  It discusses what exactly lag is, what causes it, and factors that contribute to it.  Great for an intro to beginning to build a multiplayer game because it highlights what makes all muliplayer gamers mad...LAG!">
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/multiplayer/lag.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/multiplayer/lag.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFEA00">W</font><font color="#FFD500">h</font><font color="#FFC000">a</font><font color="#FFAB00">t</font><font color="#FF9600"> </font><font color="#FF8100">i</font><font color="#FF6C00">s</font><font color="#FF5700"> </font><font color="#FF4200">L</font><font color="#FF2D00">a</font><font color="#FF1800">g</font><font color="#FF0300">?</font><BR><FONT SIZE=-2>By: <a href="mailto:ghowland@lupinegames.com">Geoff Howland</a></FONT></H3>
+<!--End Title-->
+
+<p>Lag is the bane of Internet gameplay, but what is it?
+
+<p>Latency is the proper name for the time it takes a packet of information to 
+  be sent from the sender to the receiver over a network. Lag is what it is generally 
+  called and more specifically when it is noticeable. If the latency is low, you 
+  don't notice any lag, the longer it takes a packet to cross the network, the 
+  more lag you have.
+  
+<p>To understand why you have lag you need to understand how information is sent.
+
+<H3><FONT COLOR=YELLOW><I>The Packet</I></FONT></H3>
+
+<p>When information needs to be sent from your computer it first needs to be chopped 
+  up into small pieces, these pieces are called packets. Your computer cant send 
+  all its information at once because you cant be guaranteed that no one else 
+  will try to send information at the same time and cut off your transmission. 
+  Basically networks or any type of computer connection work just like a phone 
+  conversation you would have with a friend. If you both talk at the same time, 
+  its hard to understand what is being said clearly. If one of you talks and the 
+  other listens, then it's easy to understand what each other is saying.
+  
+<p>One of the key things to understand about packets is that the longer the packet's 
+  are, the longer it will take to send and the more likely you will be interrupted 
+  by someone else. If you are interrupted you have to wait for a little while, 
+  in which the network controller hopes the interrupting transmission has finished, 
+  and then you send the packet again. When another packet interrupts your packet 
+  it is called a collision.
+  
+<p>The more often you have collisions, the more lag you will have and collisions 
+  are extremely common on the Internet as you have billions of packets of information 
+  being sent all over the world, all the time.
+  
+<H3><FONT COLOR=YELLOW><I>The Ping</I></FONT></H3>
+
+<p>A &quot;ping&quot; is both a term and a program used to determine how quickly 
+  a packet can go to the destination and the destination can send a response back 
+  that it got the packet, so it is measuring a round trip of information. Ping 
+  times vary tremendously by what type of connection you have to your network, 
+  how close you are to your destination and how much other information is trying 
+  to be sent by other people at the same time.
+  
+<p>On a Local Area Network (LAN), that is a system of computers tied together 
+  all in one basic location like a house or office, you can receive extremely 
+  fast responses, usually less then 10 milliseconds if there is not a lot of transfers 
+  happening. In an environment like this you will probably never notice a lag 
+  unless someone starts doing one or more huge file transfers.
+  
+<p>If you are connecting to the Internet through a dial-in modem to an ISP (Internet 
+  Server Provider), as most home users are, then you will receive much higher 
+  ping times because your connection is hundreds of times slower than a LAN. Games 
+  are however usually designed so that they will still work well on a dial-up 
+  Internet connection, but there are a lot of factors that go in to the connection 
+  moving smoothly.
+  
+<H3><FONT COLOR=YELLOW><I>Connection Speed</I></FONT></H3>
+
+<p>The first thing that will limit your network connection is the speed at which your computer can talk to your ISP. Most modems today are at least 28.8K BAUD to 56K BAUD. BAUD means bits per second, and does not stand for anything, it was named after an engineer name Baudot. A bit is one switch that is either "on" or "off". To have enough information for a single character you need 8 bits, which equal a byte. However, because you are sending the information over a modem, you have to add on extra information so that the receiver knows he is listening to you correctly, so it actually takes 10 bits to send 1 byte. This makes calculating how many bytes you are sending easy however, as you just need to divide 28800 bits/second (28.8K BAUD) by 10 and end up with 2880 bytes per second.
+
+<P>Although you may have a modem that say it is a 56K BAUD modem, it is unlikely you will ever receive rates higher than about 3400 bytes per second. When you do receive more it is usually because your modem is compressing the information sent, and when you download information that is already compressed or is not very compressible, you will not get those extra bursts of speed above about 3400 bytes/second.
+  
+<p>Enough of the history lesson, lets get into where this matters: the lag.
+
+<H3><FONT COLOR=YELLOW><I>Birth of Lag: Building the Packet</I></FONT></H3>
+
+<p>The first "bottleneck" where you will have problems sending and receiving information will be your modem. Your modem sends approximately 3400 bytes per second, your game will often update the screen to show you new visual information 30 times per second, or more.
+
+<P>However, it is not necessary to update the network connection this quickly, as real movements and actions do not change as quickly as the eye can detect most often. Normally you will not need to have the network connection updated more than 10 times per second, leaving approximately 340 bytes per update in an ideal environment.
+
+<P>To understand exactly what 340 bytes per update means, you need to understand what kind of information needs to be updated in the game and how many bytes each one of those pieces of information will take.
+
+<P>Say we take a game like Quake, where you are able to turn in different directions, move in different directions, jump and shoot. Lets say we take just this information and try to update it and send it back and forth between the players. I wont bore anyone with more lessons on how computers operate at a low level, so you're just going to have to trust me on the math stuff unless you want to learn about it more or you already know it.
+
+<P>First we will start by determining what direction the player is looking, so that we can tell the other player's computer how to draw which direction your player is facing.
+
+<P>If we have less than 256 directions the unit could be facing, then we can fit it into 1 byte. Most likely the game allows for more than this, but we can fudge it so that it looks correct enough on the other persons display so that this will be fine. If we store the direction a player could be looking up or down we will need an additional byte. This means we have 2 bytes that will need to be sent every update for the characters facing information. 
+
+<P>Now we have the direction and speed/distance you are moving. To make this easier we can just send what game developers call a "delta", which in math they use to mean a change, so we will just send the changes in coordinates from the last position. To update the unit's position in the 3 axis's X , Y and Z we will need 2 bytes each to store a change of up to 64,000 unit positions in any axis. If we can shrink this movement down to be limited to a 256 unit change we can reduce the bytes needed from 6 to 3, but for arguments sake we will say we cant, so we need 6 bytes bringing the current total to 8 bytes.
+
+<P>To figure out when the unit jumps a lot is left up to the user, as they may let go at any time, so we will just turn on a flag that says it unit is jumping and at what height position they are currently at. If the user lets go before we update again, it will be less of a mistake then if we only update where the unit's current height is, as you can only jump so high. So we add on another two bytes for the time the user pressed jump, which brings us to the total of 10.
+
+<P>We'll use another byte to add on the time a weapon was fired and we also have to pass on what kind of gun we are using so that the other computer knows what type of projectile to attack with which will take 3 bytes, bringing us to 13 bytes. 
+
+<P>Assuming that there can be 8 players at any time in a multiplayer game, we need to be able to send 104 bytes per update to give just this minimal information for each of their actions. There are a few more areas that need to be covered for players as well as some server synchronization items, but we will leave those out for this discussion.
+
+<P>These 104 bytes needs to be sent over the Internet through a protocol, and the one most games use it called UDP, which takes up 8 bytes to address information about the packet and where it is coming from and going. So to travel over the Internet our packet would need to be a grand total of 112 bytes, which is well under the 340 byte per update limit.
+
+<P>Unfortunately modems rarely get their full speed over the Internet, and packets are often lost. If we sent more information it might not matter if a packet was lost, as we may be able to send all the information needed each time. This is usually not done just because the idea is that if you have a bad Internet connection, you may not be able to play smoothly anyway, but if you have a good connection you will most likely have a better chance of fast updates by sending less information and having the risk of having to resend the packets that are lost
+
+<H3><FONT COLOR=YELLOW><I>The Home of Lag: The Internet</I></FONT></H3>
+
+<p>There are many things that can happen to your packet when it enters the Internet: 
+  it can collide with another packet and need to be resent, it can get lost in 
+  the shuffle of routers if a normal connection is down or it can be delayed on 
+  a busy network or a number of them.
+  
+<p>Since going into full detail on the life of a packet would require a lot of 
+  background and messy details, Ill skip to the real basics.
+  
+<p>Firstly, the more network devices your packet has to travel through, the longer 
+  it will take, and the more chance it will collide with another packet and never 
+  reach its destination. In network terms, we call these hops. A packet will hop 
+  from your ISP's computer which you are connected to, to your ISP's router, then 
+  to your ISP's feed's router, then it will hop along the feed's backbone's routers 
+  a couple of times and land on the destination computer's ISP's router, then 
+  ISP's computer, then your destination computer.
+  
+<p>That's a lot of hopping around, and a lot of chances that you will get a collision. 
+  Physical location usually means you have less hops to go once you leave your 
+  ISP to the destination ISP, but this isn't always so. You can actually track 
+  the amount of hops from your machine to a destination with a tool called &quot;trace 
+  route&quot; which will also give you lag times for each hop along the way, so 
+  you can find the culprit slowing down your connection. Unfortunately, there 
+  usually isn't much you can do about this, unless you find out its your ISP, 
+  then you can switch to another.
+  
+<p>Average ping times to different sites with a good connection (T-1 or greater) 
+  can be about 11-20 milliseconds (ms), average pings to slower sites range more 
+  along 70-100 ms, slower pings can be up to 300 ms regularly and can get EXTREMELY 
+  bad where it can take several seconds to reach. Packets however don't live this 
+  long, they can only bounce around so many times before they are considered obsolete, 
+  so the information is better to just be resent.
+  
+<p>Taking 300 ms as a time you may actually get often enough on a dial-in modem, 
+  you can see that you have a lag time of 1/3 of a second between when you send 
+  your information, and when you receive an update from the other player. This 
+  means that what he did 10 frames ago (on the 30 frames/second model), you are 
+  just seeing now, which means you are very out of sync with each other. If you 
+  have a lag of 100 ms instead you will only have a 1/9 of a second or seeing 
+  what happened 3 frames ago on your system. This is an improvement by far, but 
+  if the game relied solely on this information your opponent would still seem 
+  to move in a choppy fashion and seem slow to respond. So what are the solutions?
+  
+<H3><FONT COLOR=YELLOW><I>Smoothness via Duct Tape</I></FONT></H3>
+
+<p>Since you cant make the Internet go any faster, and not everyone can have high 
+  speed connections or be in the same room or building with each other when they 
+  play game developers have had to come up with alternative solutions to how to 
+  make multiplayer games seem smooth.
+  
+<p>What is commonly done is called interpolating the figures, this is just making 
+  an educated guess. If the player is running forward now, then player will more 
+  than likely be running forward still on the next update, so until we hear from 
+  them, we will assume that they are running forward and move them on the screen 
+  this way.
+  
+<p>This is how you end up with false kills and things that should have been hits, 
+  but weren't, because the system was showing you something but in fact, the other 
+  player wasn't really there, you just hadn't gotten the update yet.
+  
+<p>Other factors that are involved in this, is how the game determines what is 
+  happening and what isn't. So far I have describe the networking in what is called 
+  a client to client game. The individual computers just share information about 
+  what is happening with each other. This doesn't work very well when you start 
+  adding more people though, as you end up waiting for information on everyone, 
+  which is taking more of your valuable modem bytes per second.
+  
+<p>So another model is what is called a client-server mode. One machine acts as 
+  the server, and all updates are sent to it. Then it sends updates back to all 
+  the clients and tells them what other clients are doing. Depending on how the 
+  game developers made the software, the server may be the machine that determines 
+  whether something is a kill or not, or it may all be individually handled on 
+  the client machines and the server just passes on the information.
+  
+<p>How this is all accomplished could take up a whole article in itself, so lets 
+  wrap this up....
+  
+<H3><FONT COLOR=YELLOW><I>It isn't as easy as it sounds</I></FONT></H3>
+
+<p>Most likely you didn't read all of this and decide it was easy, but unfortunately, 
+  it's even harder than I described it. Normally games are sending much more information 
+  or stats then I originally provided for, and they don't just have to fill in 
+  information for two people, they can have up to eight, or thiry two, or more. 
+  That means you can send eight times less information with every update if you 
+  expect to do it as often or update eight times less or some combination in between.
+  
+<p>There is a LOT of tweaking by adjusting small amounts of &quot;how much to 
+  send&quot; and &quot;how often to send it&quot;, and it just can't be done off 
+  the top of your head. This is an extremely hard process to design and implement 
+  and it becomes all the harder because the major decision maker on whether the 
+  information will get there or not is totally out of the designers hands: the 
+  Internet.
+  
+<p>Hopefully this cleared up some of the questions you had about what lag is, 
+  why it occurs and what is being done to try to work around it. Developers are 
+  really trying to make the best multiplayer experiences they can and it takes 
+  a lot of individual tuning for each game to do it properly and a lot of testing 
+  to get it right.</P>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,7 +1,8 @@
 use sdl2::{
     pixels::PixelFormatEnum,
+    rect::Rect,
     render::{Canvas, TextureCreator},
-    video::{FullscreenType, Window, WindowContext},
+    video::{DisplayMode, Window, WindowContext},
 };
 
 const SOFT_PIXEL_CHANNELS: usize = 2;
@@ -21,28 +22,23 @@ pub struct Framebuffer {
     stride: usize,
     disp_buf: Vec<u8>,
     draw_buf: Vec<u8>,
-    canvas: Canvas<Window>,
+    rect: Option<Rect>,
+    pub canvas: Canvas<Window>,
 }
 
 impl Framebuffer {
     pub fn new(mut canvas: Canvas<Window>, width: usize, height: usize) -> Self {
-        if matches!(canvas.window().fullscreen_state(), FullscreenType::True) {
-            let requested_ratio = width as f32 / height as f32;
-            let height = canvas.window().drawable_size().1;
-            let ratio = height as f32 / requested_ratio;
-            canvas
-                .set_logical_size(ratio as u32, height as u32)
-                .unwrap();
-        } else {
-            canvas
-                .set_logical_size(width as u32, height as u32)
-                .unwrap();
-        }
+        let rect = None;
+        canvas
+            .set_logical_size(width as u32, height as u32)
+            .unwrap();
 
         let texture_creator = canvas.texture_creator();
         let texture = texture_creator
             .create_texture_streaming(Some(PIXEL_FORMAT), width as u32, height as u32)
             .unwrap();
+
+        canvas.window_mut().show();
         Self {
             _tc: texture_creator,
             texture,
@@ -50,6 +46,7 @@ impl Framebuffer {
             stride: width * SOFT_PIXEL_CHANNELS,
             disp_buf: vec![0; (width * height) * SOFT_PIXEL_CHANNELS],
             draw_buf: vec![0; (width * height) * SOFT_PIXEL_CHANNELS],
+            rect,
             canvas,
         }
     }
@@ -99,12 +96,27 @@ impl Framebuffer {
         std::mem::swap(&mut self.disp_buf, &mut self.draw_buf);
     }
 
+    pub fn dbg(&self) -> DisplayMode {
+        self.canvas
+            .window()
+            .subsystem()
+            .current_display_mode(self.canvas.window().display_index().unwrap())
+            .unwrap()
+    }
+
     /// Throw buffer1 at the screen
     pub fn blit(&mut self) {
+        // let mode = self
+        //     .canvas
+        //     .window()
+        //     .subsystem()
+        //     .current_display_mode(self.canvas.window().display_index().unwrap())
+        //     .unwrap();
+        // dbg!(mode);
         self.texture
             .update(None, &self.disp_buf, self.stride)
             .unwrap();
-        self.canvas.copy(&self.texture, None, None).unwrap();
+        self.canvas.copy(&self.texture, None, self.rect).unwrap();
         self.canvas.present();
     }
 }

@@ -1,0 +1,557 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="GENERATOR" CONTENT="UltraEdit-32">
+   <META NAME="Author" CONTENT="Nathan Davies">
+   <TITLE>Transparency in Direct 3D Immediate Mode</TITLE>
+</HEAD>
+
+<BODY BACKGROUND="" BGCOLOR="#000000" TEXT="#FFFFFF" LINK="#00FF00" VLINK="#FFFF00" ALINK="#FF0000">
+
+<A NAME="TOP">
+
+<CENTER>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100% BGCOLOR=#1010A0>
+
+	<TR><TD>
+		<CENTER><FONT SIZE=+2>Transparency in D3D Immediate Mode</FONT></CENTER>
+	</TD></TR>
+	
+	<TR><TD>
+		<CENTER>Written by <A HREF="mailto:alamar@cgocable.net">Nathan Davies</A> From <A HREF="http://www.cgocable.net/~alexpat/Alamar/">Alamar's Domain</A> on Feb 15, 1999</CENTER>
+	</TD></TR>
+
+</TABLE>
+
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
+
+	<TR><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=90%></TD></TR>
+	
+	<TR><TD HEIGHT=20></TD></TR>
+	
+	<TR><TD></TD><TD COLSPAN=2>
+		The purpose of this tutorial is to teach you, the reader what steps are necessary when drawing primitives in Direct 3D's Immediate Mode with textures containing transparency.  What I mean in this is that each pixel/texel of the texture is either visible or not visible.  In other words, the alpha value is either full or zero.  This method has the same effect as using source color keys in Direct Draw, but isn't nearly as easy to do in Direct 3D.
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TR>
+	
+	<TR><TD></TD><TD COLSPAN=2>
+		This tutorial is NOT here to teach you about how to setup Direct 3D or how to render primitives.  I make the assumption that you already know how to do these things.  I have also removed most error checking code because I assume you have your own methods already.  In a perfect world you should check the response of every function call and react accordingly.
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD><TD></TD><TD></TD></TR>
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
+
+	<TR><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=90%></TD></TR>
+	<TR><TD></TD><TD COLSPAN=2>
+		There are five main steps involved in rendering textures in this way:
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD>
+		1. <A HREF="#ENUM">Enumerating Texture Formats</A>
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD>
+		2. <A HREF="#CREATE">Creating the Texture</A>
+	</TD></TR>
+		
+	<TR><TD></TD><TD></TD><TD>
+		3. <A HREF="#LOAD">Loading the Image</A>
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD>
+		4. <A HREF="#SETUP">Setting up the Transparency</A>
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD>
+		5. <A HREF="#RENDER">Rendering the Texture</A>
+	</TD></TR>
+	
+	<TR><TD HEIGHT=20 BGCOLOR=#1010A0></TD></TR>
+</TABLE>
+
+<A NAME="ENUM">
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100% BGCOLOR=#1010A0>
+
+	<TR><TD><CENTER><FONT SIZE=+1>1. Enumerating Texture Formats</FONT></CENTER></TD></TR>
+	
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=75%></TD></TR>
+	
+	<TR><TD></TD><TD COLSPAN=5>
+		Just like all the other DirectX Enumeration functions, EnumTextureFormats' first parameter is a pointer to your callback function.  The second paramter is a void pointer.  In this case we will be sending the address of a DDPIXELFORMAT Variable.  The EnumTextureFormats function is called using your LPDIRECT3DDEVICE3 pointer.  A good place for this code would be during DirectX Initialization right after QueryInterface'ing for the D3DDevice pointer.
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+		DDPIXELFORMAT TexturePixelFormat;
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+		pD3DDevice->EnumTextureFormats(( LPD3DENUMPIXELFORMATSCALLBACK )EnumTextures, ( void* )&TexturePixelFormat );		
+	</TD></TR>
+
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	// If a Texture Format was NOT found, use the Current Back Surface Format instead<BR>
+	if( TexturePixelFormat.dwSize != sizeof( DDPIXELFORMAT ))
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+		pBackSurface->GetPixelFormat( &TexturePixelFormat );
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD COLSPAN=5>
+		The LPD3DENUMPIXELFORMATSCALLBACK type is a pointer to a function that passes two parameters.  The first parameter is of type LPDDPIXELFORMAT.  This parameter will have the pixel format information for the current enumeration.  The following code is an example of how you might write this function.  This version will only accept 16bit textures with a single bit of alpha.  There are only two possible texture formats for this that I am aware of are:  RGBA 5551 and alternatively ARGB 1555.  If the desired texture format is found the enumeration is stopped and the supplied DDPIXELFORMAT value is filled.  If the desired format is not found the format will be set using the current primary/back format as above.
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+		HRESULT CALLBACK EnumTextures( LPDDPIXELFORMAT DDPixelFormat, LPVOID pDDDesiredPixelFormat )
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+		{
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+			if( DDPixelFormat->dwFlags & DDPF_ALPHAPIXELS && DDPixelFormat->dwRGBBitCount == 16 )
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+			{
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD COLSPAN=2>
+				if( DDPixelFormat->dwRGBAlphaBitMask == 1 || DDPixelFormat->dwRGBAlphaBitMask == 0x8000 )
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD COLSPAN=2>
+				{
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD>
+			        memcpy( pDDDesiredPixelFormat, DDPixelFormat, sizeof(DDPIXELFORMAT) );
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD>
+					return D3DENUMRET_CANCEL;
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD COLSPAN=2>
+				}
+	</TD></TR>
+				
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+			}
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+			return D3DENUMRET_OK;
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+		}
+	</TD></TR>
+
+	<TR><TD HEIGHT=20></TD></TR>
+	
+	<TR><TD COLSPAN=6><CENTER>
+		<A HREF="#TOP">Back to Top</A>
+	</CENTER></TD></TR>
+	
+	<TR><TD HEIGHT=20></TD></TR>
+</TABLE>
+
+<A NAME="CREATE">
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100% BGCOLOR=#1010A0>
+
+	<TR><TD><CENTER><FONT SIZE=+1>2. Creating the Texture</FONT></CENTER></TD></TR>
+	
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=75%></TD></TR>
+	
+	<TR><TD></TD><TD COLSPAN=5>
+		Creating the texture involves creating a surface and QueryInterface'ing for the texture.  For this you'll need a DDSURFACEDESC2 Variable initialized with the usual information.  You will also need to supply the PixelFormat from the section above.  You then create the surface using this information and Query for the texture.
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	DDSURFACEDESC2 Desc;
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	ZeroMemory( &Desc, sizeof( DDSURFACEDESC2 ));
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	Desc.dwSize = sizeof( Desc );
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	Desc.dwFlags = DDSD_WIDTH | DDSD_HEIGHT | DDSD_CAPS | DDSD_PIXELFORMAT;
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	Desc.dwWidth = Width;
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	Desc.dwHeight = Height;
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	Desc.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	Desc.ddsCaps.dwCaps2 = DDSCAPS2_TEXTUREMANAGE;
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	Desc.ddpfPixelFormat = TexturePixelFormat;
+	</TD></TR>
+
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	pDD->CreateSurface( &Desc, &TheSurface, 0 );
+	</TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	TheSurface->QueryInterface( IID_IDirect3DTexture2, ( void **)&TheTexture );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=20></TD></TR>
+	
+	<TR><TD COLSPAN=6><CENTER>
+		<A HREF="#TOP">Back to Top</A>
+	</CENTER></TD></TR>
+	
+	<TR><TD HEIGHT=20></TD></TR>
+</TABLE>
+
+<A NAME="LOAD">
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100% BGCOLOR=#1010A0>
+
+	<TR><TD><CENTER><FONT SIZE=+1>3. Loading the Image</FONT></CENTER></TD></TR>
+	
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=75%></TD></TR>
+	
+	<TR><TD></TD><TD COLSPAN=5>
+		Loading the Image, or setting up the surface, requires opening a bmp file and copying the information from it to the surface.  The following code uses a DC for this purpose since BitBlt will convert from the 24-bit BMP's I use to the 16-bit format of the surface supplied.  You could of course write all this yourself, or better yet load from a image file that already has an alpha value in it, but that's not the purpose of this tutorial.  That and I haven't done it myself :)
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	HBITMAP hBM;
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	BITMAP BM;
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	HDC hDCImage, hDC;
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	hBM = ( HBITMAP ) LoadImage( NULL, FileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	GetObject( hBM, sizeof( BM ), &BM );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	hDCImage = CreateCompatibleDC( NULL );
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	SelectObject( hDCImage, hBM );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	if( SUCCEEDED( TheSurface->GetDC( &hDC )))
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	{
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+		BitBlt( hDC, 0, 0, TextureWidth, TextureHeight, hDCImage, 0, 0, SRCCOPY );
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+		TheSurface->ReleaseDC( hDC );
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	}
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	DeleteDC( hDCImage );
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	DeleteObject( hBM );
+	</TD></TR>
+
+	<TR><TD HEIGHT=20></TD></TR>
+	
+	<TR><TD COLSPAN=6><CENTER>
+		<A HREF="#TOP">Back to Top</A>
+	</CENTER></TD></TR>
+	
+	<TR><TD HEIGHT=20></TD></TR>
+</TABLE>
+
+<A NAME="SETUP">
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100% BGCOLOR=#1010A0>
+
+	<TR><TD><CENTER><FONT SIZE=+1>4. Setting up the Transparency</FONT></CENTER></TD></TR>
+	
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=75%></TD></TR>
+	
+	<TR><TD></TD><TD COLSPAN=5>
+		Setting up the Transparency is a simple matter of locking the Texture's Surface, scanning through it one colour(as in 2 bytes for a 16-bit surface) at a time and setting the alpha value to 0 or 1.  There is an example very similiar to this in the Frame work files.  The code below locks the surface then retrieves the Alpha Mask and RGB Masks.  Since the two possible formats are 1555 or 5551, AlphaMask | RGBMask will always equal 0xFFFF.  This code then steps through each pixel in the surface.  If the Pixel is black, it is cleared(just in case it already contained alpha information).  Otherwise the pixel is OR'd with the AlphaMask(to make it visible).  This code ensures that any value in the texture that was black is now non-visible.  If you want other colors to be non-visible you need only compare the pixel to your color.  The problem with this however is that colors have different values in different modes.  One way to get around this is to make the first or last pixel in any bitmap your transparent color then check each pixel against that color.
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	DDSURFACEDESC2 Desc;
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	ZeroMemory( &Desc, sizeof( Desc ));
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	Desc.dwSize = sizeof( Desc );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	TheSurface->Lock( NULL, &Desc, DDLOCK_WAIT, NULL );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	WORD AlphaMask = ( WORD )Desc.ddpfPixelFormat.dwRGBAlphaBitMask;
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	WORD RGBMask   = ( WORD )( Desc.ddpfPixelFormat.dwRBitMask | Desc.ddpfPixelFormat.dwGBitMask | Desc.ddpfPixelFormat.dwBBitMask );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	WORD* SurfPtr;
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	for( DWORD y = 0; y < Desc.dwHeight; y++ )
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	{
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+		SurfPtr = ( WORD* )(( BYTE* )Desc.lpSurface + y * Desc.lPitch );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+		for( DWORD x = 0; x < Desc.dwWidth; x++ )
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+		{
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD COLSPAN=2>
+			if(( *SurfPtr & RGBMask ) == 0 )
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD>
+				*SurfPtr = 0;
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD COLSPAN=2>
+			else
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD>
+				*SurfPtr |= AlphaMask;
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD></TD><TD></TD><TD COLSPAN=2>
+			SurfPtr++;
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD></TD><TD COLSPAN=3>
+		}
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	}
+	</TD></TR>
+	
+	<TR><TD HEIGHT=5></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	TheSurface->Unlock( NULL );
+	</TD></TR>
+
+	<TR><TD HEIGHT=20></TD></TR>
+	
+	<TR><TD COLSPAN=6><CENTER>
+		<A HREF="#TOP">Back to Top</A>
+	</CENTER></TD></TR>
+	
+	<TR><TD HEIGHT=20></TD></TR>
+</TABLE>
+
+<A NAME="RENDER">
+	
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100% BGCOLOR=#1010A0>
+
+	<TR><TD><CENTER><FONT SIZE=+1>5. Rendering the Texture</FONT></CENTER></TD></TR>
+	
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=5%></TD><TD WIDTH=75%></TD></TR>
+
+	<TR><TD></TD><TD COLSPAN=5>
+		Rendering the texture is done in the same way you would any other texture, using one of the DrawPrimitive functions.  Alpha blending does not need to be on, since this is not blending.  However, unless your transparent textures are only going to be used as overlays(like cursors or menu interfaces) you do need to turn on Alpha Testing.  As far as I know, what this does is set the Z-Buffer based on the Alpha value.  When it is disabled and you draw a rectangle on the screen, the Z-Buffer is updated so that even though you might see through a section of the texture you might chop off part of an object.  For a simple example, render a rectangle with a texture where the center is transparent and render a cube in the center of the transparent section of this rectangle.  You will only see the front half of the cube.  To fix this, just set the renderstates accordingly:
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	pD3DDevice->SetRenderState( D3DRENDERSTATE_ALPHATESTENABLE, TRUE );
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+    pD3DDevice->SetRenderState( D3DRENDERSTATE_ALPHAREF, 0x02 );
+	</TD></TR>
+	
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+    pD3DDevice->SetRenderState( D3DRENDERSTATE_ALPHAFUNC, D3DCMP_GREATEREQUAL );
+	</TD></TR>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD COLSPAN=5>
+		It's usually a good idea to Turn the Alpha Testing off when it's not needed:
+	</TD></TR>
+	
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD></TD><TD COLSPAN=4>
+	pD3DDevice->SetRenderState( D3DRENDERSTATE_ALPHATESTENABLE, FALSE );
+	</TD></TR>
+	
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD HEIGHT=20></TD></TR>
+	
+	<TR><TD COLSPAN=6><CENTER>
+		<A HREF="#TOP">Back to Top</A>
+	</CENTER></TD></TR>
+	
+	<TR><TD HEIGHT=20></TD></TR>
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100% BGCOLOR=#1010A0>
+
+	<TR><TD HEIGHT=5><HR></TD></TR>
+	
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100%>
+
+	<TR><TD HEIGHT=10></TD></TR>
+
+	<TR><TD></TD><TD COLSPAN=5>
+		Well I hope this information was in some way useful.  If you find any problems or typo's, please let me know at <A HREF="mailto:alamar@cgocable.net">alamar@cgocable.net</A>.
+	</TD></TR>
+	
+	<TR><TD HEIGHT=20></TD></TR>
+</TABLE>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=100% BGCOLOR=#1010A0>
+
+	<TR><TD><CENTER>Copyright © Feb 15, 1999 Nathan Davies</CENTER></TD></TR>
+	
+</TABLE>
+
+</CENTER>
+
+</BODY>
+</HTML>

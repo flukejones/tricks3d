@@ -1,0 +1,348 @@
+<!--Header-->
+<html>
+<head>
+<title>GPMega - Beginners Section - Entering the 3rd Dimension</TITLE>
+</head>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/beginners/enter3d.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/beginners/enter3d.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<h3 ALIGN="CENTER"><font color="#FFF600">E</font><font color="#FFED00">n</font><font color="#FFE400">t</font><font color="#FFDB00">e</font><font color="#FFD200">r</font><font color="#FFC900">i</font><font color="#FFC000">n</font><font color="#FFB700">g</font><font color="#FFAE00"> </font><font color="#FFA500">t</font><font color="#FF9C00">h</font><font color="#FF9300">e</font><font color="#FF8A00"> </font><font color="#FF8100">3</font><font color="#FF7800">r</font><font color="#FF6F00">d</font><font color="#FF6600"> </font><font color="#FF5D00">D</font><font color="#FF5400">i</font><font color="#FF4B00">m</font><font color="#FF4200">e</font><font color="#FF3900">n</font><font color="#FF3000">s</font><font color="#FF2700">i</font><font color="#FF1E00">o</font><font color="#FF1500">n</font><br><font SIZE="-2">By: Jeff Weeks</font></h3>
+<!--End Title-->
+
+<p>First of all, I'm probably a terrible teacher so if you don't understand this 
+<i>help file</i>, don't worry.  Check up on some more tutorials and hopefully 
+they will describe the 3D process better than I do.  I am not a professional 
+and therefore may have some wrong information.  I'm am, basically, just 
+describing how I got 3D to work for me.
+
+<p>Second of all, I took the time to write this little tutorial so I would expect 
+a little bit of credit if you find this useful.  This, and the source code, 
+is copyrighted by me and Code<sup>x</sup> software.  I will allow reproduction of this 
+document as long as the origional copyright stays intact.  Other than that, 
+have fun and don't rip me off!
+
+<p>If your looking for a really good tutorial on 3D check out the documentation for 
+the Zed 3D engine.  That's where I got a lot of my information from.  The VLA and 
+Asphixia demo trainers are also good sources of information.  Unfortunately, I 
+don't have URLs for any of the above :(
+
+<p>Let's skip all the introductions and get right down and dirty.  A basic 3D 
+engine consists of three abilities:</p>
+
+<ul>
+<li>rotation
+<li>translation
+<li>projection
+</ul>
+
+<h3><font COLOR="YELLOW"><i>Rotation</i></font></h3>
+
+<p>Now, before I go to describe rotation, let me first do a quick intro to 
+trigonometry.  Trig. is basically the relations of a right angle 
+triangle.  The only functions you need to be aware of are sine and cosine:
+
+<p>Your basic right angle triangle describes the following:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+<img SRC="triangle.gif" WIDTH="137" HEIGHT="136">
+
+	sine = (O/H)
+	cosine = (A/H)
+</font></pre>
+</blockquote>
+
+<p>Those who already know trig. will notice that I am using angle o to calculate 
+these ratios.  This is the only angle you really need to be concerned with in 
+3D rotation.  You should also note the O is the <i>opposite</i> side of angle 
+o and A is the <i>adjacent</i> side of angle o.  These are just common 
+trigonometry terms.
+
+<p>Now, consider the below situation.  You want to rotate the point S (source) 
+to point D (destination).  You can do this simply doing the following:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+<img SRC="tri_rotate.gif" WIDTH="150" HEIGHT="122">
+	D.x = cos(a+b) * r
+	D.y = sin(a+b) * r
+</font></pre>
+</blockquote>
+
+<p>r is both the radius of the circle used to rotate, as well as both triangle's 
+hypoteneuse'.  That is probably important to note.  Since we rotate around in 
+a spherical system, the hypoteneuse never changes.  Just as the radius of a 
+circle never changes.
+
+<p>Now, simple trigonometry dictates that:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	sin(a+b) = sin(a) * cos(b) + cos(a) * sin(b)
+	cos(a+b) = cos(a) * cos(b) - sin(a) * sin(b)
+</font></pre>
+</blockquote>
+
+<p>So we make the following substitutions to our origional equations to create 
+the following equations:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	D.x = r * cos(a) * cos(b) - r * sin(a) * sin(b)
+	D.y = r * sin(a) * cos(b) + r * cos(a) * sin(b)
+</font></pre>
+</blockquote>
+
+<p>However, using a little sense, you can see that the following is true:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	r * sin(a) = y
+	r * cos(a) = x
+</font></pre>
+</blockquote>
+
+<p>Just think about it.  The equation r * sin(a) is equivalent to H * (O/H).  
+The H's cancel each other out and we're left with the O (opposite) side of a 
+triangle.  Which, incidentally, is our y coodinate.  In the same way 
+r * cos(a) is equivalent to H * (A/H).  The H's cancel out and we're left 
+with the A (adjacent) side of out triangle.  This is our x coordinate.  
+If this doesn't make since take a look at our origional trigonometry 
+functions and triangle diagram.
+
+<p>Now we finally get the below equations:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	D.x = x * cos(b) - y * sin(b)
+	D.y = y * cos(b) + x * sin(b)
+</font></pre>
+</blockquote>
+
+<p>Now, this above equation is actually only a 1D rotation though.  How do we 
+incorporate this into a 3D engine?  Well, quite simply, by applying this 
+1D rotation three times!  We just use the above equation and replace b for 
+each of our X, Y and Z rotation values.
+
+<p>It is important to realise that you must store your rotated object and the 
+origional object in different locations.  You <i>do not</i> want to overwrite 
+the origional 3D object because it is used in this equation.  It is your S 
+(source) value, or x and y in the above equation.
+
+<p>Here's some pseudo-code to put it all into perspective:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	rotated.x = orig.x;
+	rotated.y = cos(x)*orig.y - sin(x)*orig.z;
+	rotated.z = sin(x)*orig.y + cos(x)*orig.z;
+
+	rotated.x = cos(y)*rotated.x - sin(y)*rotated.y;
+	rotated.y = sin(y)*rotated.x + cos(y)*rotated.y;
+	rotated.z = rotated.z;
+
+	rotated.x = cos(z)*rotated.x - sin(z)*rotated.z;
+	rotated.y = rotated.y;
+	rotated.z = sin(z)*rotated.x + cos(z)*rotated.z;
+</font></pre>
+</blockquote>
+
+<p>You should note that in almost all languages, the sin and cos 
+functions accept radians, not degrees, so it is necessary to convert them.  
+This is done very easily using the following equation:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	radian = degree * PI / 180
+</font></pre>
+</blockquote>
+
+<h3><font COLOR="YELLOW"><i>Translation</i></font></h3>
+
+<p>Translation is the process of moving your 3D object in the direction of the 
+x,y or z axis.  This is done, very simply, by adding values to your rotated 
+x,y and z values.  It's really that simple:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	translated_x = rotated_x + translation_value;
+	translated_y = rotated_y + translation_value;
+	translated_z = rotated_z + translation_value;
+</font></pre>
+</blockquote>
+
+<p>Ofcourse, the translation values do not have to be, and rarely are, the same 
+for x, y and z.  The main reason for translation is to move your 3D object 
+into place.  The above 3D equations assume that your object is oriented with 
+it's center at (0,0,0).  Therefore you must move your 3D object from (0,0,0) 
+to where it is to be placed.
+
+<h3><font COLOR="YELLOW"><i>Projection</i></font></h3>
+
+<p>But now that we've rotated an object, how do we display it on a 2D screen?  
+This is where projection comes in.  The simplest way of projecting a 3D object 
+is to simply divide your rotated x and y values by your rotated z value.  Then 
+plotting these x and y values:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	screen_x = x / z;
+	screen_y = y / z;
+</font></pre>
+</blockquote>
+
+<p>However, there's one more thing.  You must take into account the field of view.  You 
+do this simply by multiplying your x and y values before dividing by your z value.  What 
+you multiply by is determined by your screen size, and the field of view you want.  
+Let's say you want a 60<sup>o</sup> field of view, and your screen size is 640x480.  
+To calculate your multiplying variable (commonly called 'd' for 'distance of the 
+projection plane') for your x variable you would do the following:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	d=(screen_width/2) / tan(FOV/2)
+	d=320 / tan30
+	d=554
+</font></pre>
+</blockquote>
+
+<p>The process is similar for the y value, you just replace screen_width, with screen_height.  
+Now, the projection equation looks like this:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	screen_x = (dx * x) / z;
+	screen_y = (dy * y) / z;
+</font></pre>
+</blockquote>
+
+<p>However, we're still not done yet.  The above projection equation assumes (0,0) is the 
+top left corner of the screen.  We don't want that, ofcourse, because we want (0,0) at the 
+center of the screen.  To correct this, simply add half the screen width to x, and half the 
+screen height to y.  The final projection equation looks like this:
+
+<blockquote>
+<pre><font COLOR="RED" SIZE="2">
+	screen_x = (dx * x) / z + (screen_width / 2);
+	screen_y = (dy * y) / z + (screen_height / 2);
+</font></pre>
+</blockquote>
+
+<p>I hope that helped someone out.</p>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</strong>
+</font>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+//-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</body>
+</html>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

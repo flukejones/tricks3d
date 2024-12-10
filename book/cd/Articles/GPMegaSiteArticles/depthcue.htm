@@ -1,0 +1,287 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Advanced Section - Depth Cueing</TITLE>
+<META NAME="DESCRIPTION" CONTENT="This article covers the techniques and algorithms used in the process known as Depth Cueing.  A common feature of 3D Engines.">
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/advanced/depthcue.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/advanced/depthcue.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFEA00">D</font><font color="#FFD500">e</font><font color="#FFC000">p</font><font color="#FFAB00">t</font><font color="#FF9600">h</font><font color="#FF8100"> </font><font color="#FF6C00">C</font><font color="#FF5700">u</font><font color="#FF4200">e</font><font color="#FF2D00">i</font><font color="#FF1800">n</font><font color="#FF0300">g</font><BR><FONT SIZE=-2>By: <a href="mailto:mailfreddy@gmx.net">Matthias Holitzer</a></FONT></H3>
+<!--End Title-->
+
+<H3><FONT COLOR=YELLOW><I>What is depth cueing?</I></FONT></H3>
+      
+<P>Depth cueing can be used for many rendering effects such as fog, haze, mist but can also be used to 
+render some sorts of water. It can also be used for the effect that objects farther away from 
+the viewer get darker with increasing distance. In this document I'm gonna explain the latter one, the
+other ones can be rendered pretty easy using an inverse logic (athmosperical effects can be rendered 
+by making use of the fact that in fog objects farther away are getting more and more "milky", that 
+means are getting brighter with increasing distance). The water effect mentioned before refers to 
+rendering murky or cloudy water (or more general each liquid with visibility reduced to a few meters).
+Generally depth cueing means that objects get darker, brighter or whatever with increasing distance.
+
+<H3><FONT COLOR=YELLOW><I>Getting started</I></FONT></H3>
+
+<P>When I started to implement depth cueing in my engine I searched the web for docs on it but couldn't 
+find nothing reasonable. A reason for this is surely that this effect is usually done in hardware and the 
+programmer musn't care too much about the algorithm. Unfortunately it's only that easy under Windoze
+(and Watcom) when using 3D accelerator support. But if you're a DOS programmer like me (well, 
+learnin' Windoze, gotta go with the time) and wanna implement depth cueing in your engine there's only 
+one way: do it in software! When I started all I had was a doc from SGI describing the way how it
+works in hardware and what effects can be done with it together with the information that you specify a 
+value at the far clipping plane which tells the renderer how dark the object should get there. Normally
+you pass it a percent value (0% leaves the intensity unmodified while 100% states that the intensity 
+should be 0 at the far clipping plane). And that's exactly what we'll do!
+
+<H3><FONT COLOR=YELLOW><I>The algorithm</I></FONT></H3>
+
+<P>I'll present here the algorithm I derived myself. I don't know of any other algorithms (since I didn't find
+webpages on this topic), there could be an algorithm twice as fast as mine (which I don't think) but I 
+think my works pretty well. The first thing is to be able to compute a percent value at any given z. 
+Sounds difficult but is only a question of linear interpolation most of you should know (if not read 
+any doc on gouraud shading). With a bit of thinking I came to the following equation:
+
+<CENTER><P><TABLE WIDTH=65% CELLPADDING=0 CELLSPACING=0>
+<TR><TD>
+<TABLE><TR><TD>
+<PRE><FONT COLOR=#FF0000 FACE=Courier SIZE=2>
+               (d2 - d1)
+percent = z * ___________
+
+             (zfar - znear)
+
+
+where d2 = intensity at far clipping plane
+      d1 = intensity at near clipping plane (usually 0)
+      zfar = far clipping plane
+      znear = near clipping plane
+</FONT></PRE>
+</TD></TR></TABLE>
+</TD></TR>
+</TABLE></CENTER>
+
+<P>OK. So now we're able to compute a percent value at any given z. But what does it bring us and how
+can we use it you ask. It's really easy: basically all we have to do now is to multiply it by the current 
+intensity from shading, divide it by 100 (since we're working with percent) to arrive at the value to be 
+subtracted from the intensity. The equation would look like this:
+
+<CENTER><P><TABLE WIDTH=65% CELLPADDING=0 CELLSPACING=0>
+<TR><TD>
+<TABLE><TR><TD>
+<PRE><FONT COLOR=#FF0000 FACE=Courier SIZE=2>
+                 i * percent
+final_i = i  - ( __________ )
+
+                    100
+
+where i = current intensity 
+         final_i = final intensity
+</FONT></PRE>
+</TD></TR></TABLE>
+</TD></TR>
+</TABLE></CENTER>
+
+
+<P>So it ain't that hard, you see. By the way as mentioned before when fogging you could rather add than
+subtract this value to get the final intensity. There's another thing. I'm currently using a depth cue 
+plane that's taken into the computations since my far clipping plane is located at z=50000 and it doesn't
+allow much control. So instead of subtracting znear from zfar you subtract it from the depth cue plane
+(hint: if the intensity at the depth cue plane is >= 100%, reset the far clipping plane to the depth cue 
+plane since objects behind the depth cue plane wouldn't be seen anyway due to their intensity).
+
+<H3><FONT COLOR=YELLOW><I>Implementation</I></FONT></H3>
+
+<P>There are two ways to implement it which all have their pros and cons. The first one is to implement it
+directly into your polygon filling routine (if you should be using flat shading and an extremely fast hline
+routine from a lib or so for filling your polys I highly recommend you implement gouraud shading first. 
+It ain't that hard and looks really MUCH better). The pseudo code would look something like that:
+
+<CENTER><P><TABLE WIDTH=65% CELLPADDING=0 CELLSPACING=0>
+<TR><TD>
+<TABLE><TR><TD>
+<PRE><FONT COLOR=#FF0000 FACE=Courier SIZE=2>
+for(x=x1 -> x2)
+     if(z <= zbuffer[x][y])
+          percent = z * ((d2 - d1) / (zfar - znear))
+          final_i = i - (i * percent / 100)
+          putpixel(x, y, final_i)  
+     end
+end
+</FONT></PRE>
+</TD></TR></TABLE>
+</TD></TR>
+</TABLE></CENTER>
+
+<P>You should have noticed something: the zbuffer test in line two. Well, I'm of the opinion that when you
+must compute the value for every pixel (can be done easily by, guess what, linear interpolation), you 
+could use a zbuffer for hidden surface removal, however that's a very important design decision you 
+must do yourself. Also the form I've written the putpixel assumes that you a) don't use texture mapping
+and b) have a palette with a smooth color gradient most likely a grayscale palette. When texture mapping
+there are two possibilities: either you're one of this lucky guys (workin' on it) who got their routines to
+work fast enough in hi- or even better truecolor or you're using a light lookup table (unshaded textures 
+shouldn't appear in any engine). 
+Anyway, the second method requires the use of a zbuffer. Basically you render all your polygons just
+like you did and after all rendering is done loop thru the zbuffer and apply the depth cueing in an extra
+step. Again here's some pseudo code:
+
+<CENTER><P><TABLE WIDTH=65% CELLPADDING=0 CELLSPACING=0>
+<TR><TD>
+<TABLE><TR><TD>
+<PRE><FONT COLOR=#FF0000 FACE=Courier SIZE=2>
+for(y=0 -> screen_height)
+     for(x=0 -> screen_width)
+          if(framebuffer[x][y] == 0)
+               continue
+          else
+               percent = zbuffer[x][y] * ((d2 -d1) / (zfar - znear))
+               final_i = i - (i * percent / 100)
+               putpixel(x, y, final_i) 
+          end
+     end
+end
+</FONT></PRE>
+</TD></TR></TABLE>
+</TD></TR>
+</TABLE></CENTER>
+
+<P>And again there are some things you should have noticed: the first is the check if the frame buffer at this 
+position is 0. Well, if the screen's already black at this position there's of course no sense to perform 
+the computations (hope I mustn't explain why...). Now to the pros and cons of both implementations.
+Generally the first one works best with scenes where there's no big overdraw and where only less than 
+half of the screen is updated every frame. The second one should logically be used whenever there's a
+big overdraw or the entire screen is updated every frame either way. 
+
+Conclusion: I think the second algorithm should rather be used in games (I'll explain later why) while the
+first one works perfect for demo effects with a few objects.
+
+<H3><FONT COLOR=YELLOW><I>Optimizations</I></FONT></H3>
+
+<P>So you've implemented everything, it looks great but your engine is doing 5 FPS even on the fastest 
+machine? That's because the algorithms presented above are totally unoptimized. Let's go. The first
+thing you could do is to precompute (d2 - d1) and (zfar - znear) or in English precompute the 
+difference of the intensities at both clipping planes (should in most cases simply be d2) and the 
+difference between the near and far clipping planes since they're constant and it's nonsense to 
+recompute them for every pixel. The most important optimization is to use dirty rectangles when 
+zbuffering (process only the regions of the zbuffer which were update during the current frame). There 
+are some good docs on dirty rectangles so I won't go into detail here but it's a very important 
+optimization that should be implemented first. I think with this optimization the second algorithm would
+be the better one for games (dirty rectangles make sure that only the parts of the zbuffer which were 
+altered during the current frame are being processed and by the way it avoids overdraw which can also 
+slow down things alot if occuring too often). And finally I highly recommend that you use fixed point 
+math. Well, I've read in many docs that floating point performance should nearly be the same as with 
+integers on Pentiums and 486 so fixed point ain't necessary no more but believe me: use it! Especially 
+in time crititcal functions like this and polygon filling you rather should still use fixed point (little 
+example: my polyfilling routine with texture mapping and gouraud shading was doing 600 FPS with 
+floats and 1600 - 1700 FPS with fixed point on my P2 300!!!). By the way: maybe the depth cueing as
+it's described in here (objects get darker with increasing distance) is halfway physically correct but I'm
+sure there are better ways to render fog (volumetric fog or whatever) but nevertheless it should look 
+quite realistic I think and should suffice for realtime engines. 
+
+
+<P>OK. Hope this doc helped you getting started and didn't confuse you too much. If you have any 
+questions, found some bugs, wanna gimme money for it (it's free but it if you want to I won't say no...) 
+or have ideas for optimization feel free to mail me. 
+
+<P>PS: if you're an Indy fan visit indyproject.indy3d.net</p>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

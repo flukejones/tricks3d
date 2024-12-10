@@ -1,0 +1,385 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Advanced Section - Creating a 3D Game: 3D Basics</TITLE>
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/advanced/3d.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/advanced/3d.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFF700">C</font><font color="#FFEF00">r</font><font color="#FFE700">e</font><font color="#FFDF00">a</font><font color="#FFD700">t</font><font color="#FFCF00">i</font><font color="#FFC700">n</font><font color="#FFBF00">g</font><font color="#FFB700"> </font><font color="#FFAF00">a</font><font color="#FFA700"> </font><font color="#FF9F00">3</font><font color="#FF9700">D</font><font color="#FF8F00"> </font><font color="#FF8700">G</font><font color="#FF7F00">a</font><font color="#FF7700">m</font><font color="#FF6F00">e</font><font color="#FF6700">:</font><font color="#FF5F00"> </font><font color="#FF5700">3</font><font color="#FF4F00">D</font><font color="#FF4700"> </font><font color="#FF3F00">B</font><font color="#FF3700">a</font><font color="#FF2F00">s</font><font color="#FF2700">i</font><font color="#FF1F00">c</font><font color="#FF1700">s</font><BR><FONT SIZE=-2>By: John De Goes</FONT></H3>
+<!--End Title-->
+
+<H3><FONT COLOR=YELLOW><I>3D Clipping</I></FONT></H3>
+
+<P>Clipping is used to avoid drawing polygons that are outside the screen and also chop them so that it doesn't pass the screen.  You'll be thinking why would we want to chop every polygon why not just take it out if its completely out?  Well, what if a polygon was very long.  If it passed the screen by 400 pixels, you would probably get an error.  Chopping polygons isn't too hard.  Simply define a plane, find the plane normal and do the dot product of that normal vector with any point and you will get the distance from the plane.  Do the same with a second point and get the distance.  Add up the distances and that will be your total distance.  Then divide the first distance by the total distance and you'll get the ratio at which the line hits the clip plane.
+
+<P>Now that you have the ratio, use the parametric equation of a line to find the point at which it hits the plane.
+
+<P>Parametric equation:
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	X = (initial point.x) + (ratio) * (direction.x)
+	Y = (initial point.y) + (ratio) * (direction.y)
+	Z = (initial point.z) + (ratio) * (direction.z)
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Sub in the numbers and you will get the new point.  This part isn't too bad.  The harder part is to add that new vertex into the polygon.
+
+<P>As you see, a new vertex was added because one of the vertex was clipped.  To do this, you must insert that new vertex and move every vertex after that up one.
+
+
+<H3><FONT COLOR=YELLOW><I>3D Rotations</I></FONT></H3>
+
+<P>To do 3D rotations, the equation is very similar to 2D rotations except a rotation is done for every plane.  Since 3D has 3 planes, the rotation must be done three times.  The x-y plane is called roll, y-z plane is called pitch, and the x-z plane is called yaw.
+<P>To understand roll, pitch, and yaw, picture this.  When you move your head up and down is called pitch.  Put your left ear on your left sholder and then right ear on your right sholder, that is roll.  Move your head horizontally side to side, that is yaw.  A game like doom and wolfenstein, would only use the yaw rotation since you cannot look up or down.
+<P>Here are the equations to rotate a 3D point:
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	x'=z*sin(yaw)+x*cos(yaw)
+	y'=y
+	z'=z*cos(yaw)-x*sin(yaw)
+
+	x"=x'
+	y"=y'*cos(pitch)-z'*sin(pitch)
+	z"=y'*sin(pitch)+z'*cos(pitch)
+
+	x"'=y"*sin(roll)+x"*cos(roll)
+	y"'=y"*cos(roll)-x"*sin(roll)
+	z"'=z"
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>If you like the matrix form better here are the matrices:
+
+<P>Matrix to rotate around x axis:
+
+<center>
+<TABLE BORDER=0>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>cos(a)</TD>
+<TD ALIGN=CENTER>-sin(a)</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>sin(a)</TD>
+<TD ALIGN=CENTER>cos(a)</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>1</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>1</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+</TABLE>
+</center>
+
+<P>Matrix to rotate around y axis:
+
+<center>
+<TABLE BORDER=0>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>cos(a)</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>-sin(a)</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>1</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>sin(a)</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>cos(a)</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>1</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+</TABLE>
+</center>
+
+<P>Matrix to rotate around z axis:
+
+<center>
+<TABLE BORDER=0>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>1</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>cos(a)</TD>
+<TD ALIGN=CENTER>-sin(a)</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>sin(a)</TD>
+<TD ALIGN=CENTER>cos(a)</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+<TR>
+<TD ALIGN=CENTER>[</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>0</TD>
+<TD ALIGN=CENTER>1</TD>
+<TD ALIGN=CENTER>]</TD>
+</TR>
+</TABLE>
+</center>
+
+<p>Note: When you calculate the cos and sin, the functions use radians.  Therefore, you must convert from degrees to radians.  The equation to convert degrees to radians is angle*PI/180.
+
+<P>You will experiment some problems in your rotations if you keep the code as is is to rotate your points in all axis.  The reason is, once you calculated the Z and X in the yaw rotation, you must use those new coordinates into your y rotation and z rotation.. and so on.  To avoid this problem, I created some temporary variables that act as the new X, Y, and Z.  These new X, Y, and Z variables are then used in the next rotations.  Follow the  ',","' used to differenciate from the original x,y,and z.
+
+<H3><FONT COLOR=YELLOW><I>Perspective View</I></FONT></H3>
+
+<P>Perspective view is composed of two things: converting 3D coordinates into 2D coordinates (screen), and making the perspective view.  To convert 3D to 2D, there is a simple equation:
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	X = x / z
+	Y = y / z
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Where X, Y are your coordinates on the screen, and x,y,z is a 3D point.
+
+<P>The next part, making the perspective view.  To explain this concept, look into a shiny door knob.  See how your nose is 2x bigger than normal, and the rest of your face is smaller than normal.  This is the fish eye concept.  Having a fish eye view, is like an exaggerated perspective view.  That is, things that are closer become bigger, and things that are farther become smaller.  This concept is used to make 3D games look 3D and not flat.  Although your screen is flat, perspective view creates a depth into your screen.  To do this, you multiply the x and y by the width of your screen in pixels.  That is if you are using 320x200 resolution, you would multiply it by 320, so your formula becomes:<p>
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	X = 320 * x / z
+	Y = 320 * y / z
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>The reason why I choose the screen width is because it has to do with how far your face is from the screen.  Have you ever tried while playing a 3D game to brind your head really close to the screen and really far from the screen?  What you will notice is that the game does not look real anymore.  It either looks fish eye (too close) or flat (too far).  Using the screen width is a good ratio.  That means your head is about a foot away from the screen, which is reasonably good.
+
+<H3><FONT COLOR=YELLOW><I>Z-Sort</I></FONT></H3>
+
+<P>When you finally draw your polygons, they must be in an order from furthest to closest.  If this isn't dont, your objects wont even look like they really are because the back faces are being drawn after the front faces.  There are many ways to sort them.  The easiest would be to take every center of every object and sort that and draw the objects in that order.  But this isn't precise enough.  So I took every face on every object and threw them into a huge array.  Then I sort them.  You might ask how would I determine which face belongs to which object after it is sorted?  Well I developed a simple algorithm.
+
+<P>To identify which face I am looking at, I multiply the object number (that I'm currently looking at) with MAXFACES+1 (that is the maximum amount of faces a polygon can have) and add the face number.  This means that if I'm looking at face 5 on object 3 and MAXFACES was 16 it would be 3*(16+1)+5 = 56.
+
+<P>So to find this face with 56 is the same but do the opposite.  That is substract MAXFACES+1 until the number is smaller than MAXFACES+1 and that will give you the object you are looking at.  then what is left is your face number.
+
+<P>This will sometimes cause some faces to be drawn in the wrong order.  To go even further you can divide every face  into smaller pieces and sort that.  If this isn't precise enough, you can sort by pixels.  This is the most precise way, but also the slowest.
+
+<H3><FONT COLOR=YELLOW><I>Z-Buffering</I></FONT></H3>
+
+<P>Blasting your way to fame and glory in one of the latest 3-D computer games,
+it might not enter your mind that the world being presented to you on the
+computer sceen is not real -- but virtual -- and that every element therein
+is simulated. &nbsp;The programmers went to great extremes making sure that
+you stopped correctly when you ran into a wall, that you fell when jumping
+from a height, and that closer objects correctly obscure objects in the distance.
+&nbsp;The former two illusions are created by collision detection and physics
+simulation, respectively, whereas the latter is created through one of a
+number of visual surface determination (VSD) algorithms, which deal with
+the tricky problem of determining which parts of a world are visibile from
+a given viewpoint.
+
+<P>Computer games primarily use one of three VSD algorithms: BSP trees, depth
+sorting, and z-buffering. &nbsp;BSP trees partition a scene according to
+the plane of polygons, enabling correct sorting of static polygons. &nbsp;Depth
+sorting (of the traditional variety), sorts polygons according to their depth,
+displaying them in back to front order. &nbsp;Z-buffering performs VSD at
+the pixel level, testing the depth of each pixel in every polygon against
+the depth of the pixel previously written to the same location.
+
+<P>BSP trees are good for static polygons, but are difficult to use in moving
+environments. &nbsp;Depth sorting produces ugly artifacts which are difficult
+to resolve (obviously, just sorting polygons won't do any good if you have
+an array of overlapping or intersecting polygons). &nbsp;In contrast to these
+algorithms, the z-buffer algorithm allows for dynamic scenes and overlapping,
+intersecting polygons. &nbsp;The only disadvantage: in a software implementation,
+it consumes memory and processor time.
+
+<P>The Z-buffer algorithm interpolates z (or 1/z) coordinates across polygon
+rows as the polygons are being rasterized, and compares them to the z (or
+1/z) values in a z-buffer. &nbsp;If the new values are closer to the viewer
+than the old ones, than the old pixel is replaced and the new value is stored
+in the z-buffer. &nbsp;Simple, elegant, but not exactly fast.
+
+<P>Today's hardware for 3D acceleration usually supports z-buffering in hardware.
+&nbsp;This enables applications to gain all the luxuries of the z-buffer
+without the time-consuming overhead.
+
+<P>Since Z-buffering supports features like polygon intersection, if you're
+designing a game that will support Direct3D, QuickDraw 3D, or your own custom
+library that supports z-buffers, you can have your artists design scenes
+to take advantage of this fact. &nbsp;For example, instead of using four
+polygons to create the letter 'X', you could use two.
+
+<P>If your target platform is unaccelerated, then you definitely want to provide
+your own z-bufferer. &nbsp;The ones in Direct3D are just too slow to be of
+any use. &nbsp;I recommend interpolating fixed-point numbers (integers that
+can represent real numbers) and using at the very least the clear reduction
+optimization, both documented in my book Cutting Edge 3-D Game Programming with C++.</P>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+//-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

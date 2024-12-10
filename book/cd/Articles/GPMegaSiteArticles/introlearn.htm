@@ -1,0 +1,166 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Beginners Section - Introduction to Learning in Games</TITLE>
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/beginners/introlearn.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/beginners/introlearn.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFF800">I</font><font color="#FFF100">n</font><font color="#FFEA00">t</font><font color="#FFE300">r</font><font color="#FFDC00">o</font><font color="#FFD500">d</font><font color="#FFCE00">u</font><font color="#FFC700">c</font><font color="#FFC000">t</font><font color="#FFB900">i</font><font color="#FFB200">o</font><font color="#FFAB00">n</font><font color="#FFA400"> </font><font color="#FF9D00">t</font><font color="#FF9600">o</font><font color="#FF8F00"> </font><font color="#FF8800">L</font><font color="#FF8100">e</font><font color="#FF7A00">a</font><font color="#FF7300">r</font><font color="#FF6C00">n</font><font color="#FF6500">i</font><font color="#FF5E00">n</font><font color="#FF5700">g</font><font color="#FF5000"> </font><font color="#FF4900">i</font><font color="#FF4200">n</font><font color="#FF3B00"> </font><font color="#FF3400">G</font><font color="#FF2D00">a</font><font color="#FF2600">m</font><font color="#FF1F00">e</font><font color="#FF1800">s</font><br><FONT SIZE=-2>By: <A HREF="mailto:ghowland@lupinegames.com">Geoff Howland</a></FONT></H3>
+<!--End Title-->
+<P>To create a fun and successful game you need to be able to challenge your players.  They need to feel that they are overcoming something by beating your game.  One way to achieve this is to have your game learn from their actions.  Have it analyze what they are doing and try to come up with counter attacks to provide a challenge and to create the illusion of more intelligent opponents.
+
+<H3><FONT COLOR=YELLOW><I>Pattern Matching</I></FONT></H3>
+<P>There are a lot of legitimate artificial intelligence algorithms to finding patterns in data and finding patterns in reactions to them based on different success requirements.  However, for the purposes of game design a lot of these are currently over kill, and more importantly, not tuned to the scope of the problem.
+
+<P>You are not interested in creating a perfect reactionary machine in a game enemy, you are interested in provide a challenge for the player.  Any game already has a big plus for you as the designer, since it is your creation and you know the limits of the game.  You can therefore build your own pre-made patterns and test for them by checking the player's input or different aspects of how they are playing.
+
+<P>For instance, in a fighting game such as Street Fighter 2, the player has six buttons they can choose from.  By capturing when the player hits these buttons and the distance of the enemy or if the enemy is in the air, you can find certain patterns of play.  The player may often try to punch and then move in for a throw when they are close enough.  The player may always try to do an uppercut when their enemy has jumped.  By recording different input and game information at the time of input you can create a map of possible actions that you can use for the game's AI.  In doing so you can "learn" the players moves and then try to counter them.
+
+<P>Real-time strategy (RTS) games have a much more complex system of attack, because the input of mouse clicks are irrelevant.  To try to learn what your player is attempting to do in an RTS game you will have to abstract the data of the player's actions to find a common pattern.  This is a totally game dependent process, but as an example let's use Command &amp; Conquer (C&amp;C).
+
+<P>In C&amp;C the objective of an average mission is to build troops and a base to defend yourself, then destroy the enemy and their base.  There are two necessary points of learning: how the player interacts with enemy units and how the player builds his base.  To keep this example in focus we will only explore the first learning objective although the second would be crucial for counter-attacks.</P>
+
+<P>Contact between C&amp;C's units is very limited, when they are close enough together then they will begin to fight each other.  The first type data you will need to search on is the player's preferred unit types.  The player may prefer doing tank rushes; in this case, you will need to build defenses that specialize in defeating tanks.  If they prefer making mini-gunner units then you will adjust your defenses against that type of attack.
+
+<P>The player could have a preference of attacking the harvesters versus attacking the base directly.  This can be recorded and used so that you can send out troops to guard the harvesters or build more protection around the main base.  To create a good learning system you need to find the most common methods of attack and then figure out how you can determine if they are occurring.
+
+<H3><FONT COLOR=YELLOW><I>Storing and Searching</I></FONT></H3>
+<P>A learning system, as with any kind of database, is only as good as it's ability to find useful information. The actual content of any learning system is game dependent but there are some basics to small databases that are universal.
+
+<P>When you search for a pattern, you want to search on either one or more criteria.  In order to do this you should save your data in a way that you can easily access data quickly.  This requires that at the time you save your data you need to plan for the way the data will be accessed.  If you wish to save each occurrence of data as a separate element you will need to save them in an order that is quickly searchable.  To use the C&amp;C example you can save them starting with unit type.  By creating a table for each unit type you will short cut the need to search through all the records and collect the records that contain the appropriate types of units.
+
+<P>Another method is to store all the data in one table of ratios.  The ratio of attacks to harvesters versus attacks to the base for instance.  The ratio of using one type of unit over another.  This would make a good in-game search method, as there are no records to retrieve and analyze.  Single entry records could still be saved and analyzed outside the game.  You could also weight the latest actions to represent them as more important than previous actions as an attempt to cover for any change in tactics.
+
+<H3><FONT COLOR=YELLOW><I>Overview</I></FONT></H3>
+<P>Creating learning methods, like any other type of game AI, is going to take a lot of sitting down and thinking of situations.  It will also take a lot of play testing.  Players will come up with methods of play that you can't be obligated to think of beforehand, so you need to build your learning database flexible enough to add in more situations.
+
+<P>Learning the player's styles and preferences is not a key to creating an unbeatable opponent or the ultimate AI; it is a method for creating a challenge for your players.  By never letting them develop a tactic that will constantly work against the computer, you will ultimately extended the life of your game and keep it fresh and challenging.</P>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+//-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

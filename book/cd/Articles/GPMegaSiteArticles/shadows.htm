@@ -1,0 +1,170 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Advanced Section - Shadows</TITLE>
+<META NAME="DESCRIPTION" CONTENT="Tom Hammersley takes it into his hands to explain the basics of creating and rendering shadows for 3d objects in a 3d engine.  His concept of 'Shadow Slabs' is also introduced.">
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/advanced/shadows.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/advanced/shadows.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFDB00">S</font><font color="#FFB700">h</font><font color="#FF9300">a</font><font color="#FF6F00">d</font><font color="#FF4B00">o</font><font color="#FF2700">w</font><font color="#FF0300">s</font><BR><FONT SIZE=-2>By: Tom Hammersley</FONT></H3>
+<!--End Title-->
+
+<H3><FONT COLOR=YELLOW><I>Introduction</I></FONT></H3>
+
+<P>Shadows add a lot of realism to a 3D engine. They help to impart a good deal of information about movement, lighting and shape. Shadows are your friend. Use them wisely.
+
+<H3><FONT COLOR=YELLOW><I>Fake Shadows</I></FONT></H3>
+
+<P>Perhaps the easiest shadows to make are fake shadows. Amongst the easiest are casting them to the floor. An easy method is to project your triangle to the floor (Y = 0 in most 3D engines). Then do a simple divide by Y, so the higher an object is, the smaller the shadow. Simple, but effective. This doesn't take into account the direction of the light source. Again, this is easy to do:
+
+<P><I>s.x = p.x - (p.y / l.y)*l.x;<br>
+s.z = p.z - (p.y / l.y)*l.z;</I>
+
+<P>Where s is the shadows vertex, p is the point, and l is the light source. Very easy to code, and it works well. However, it doesn't really work well for much else than flat planes.
+
+<H3><FONT COLOR=YELLOW><I>Shadow Z-Buffer</I></FONT></H3>
+
+<P>I also know another method of generating shadows. This requires the use of 2 z-buffers though. The basic idea is that you generate two z-buffers: one from the point of view of the camera, and one from the point of view of the light. When you come to render, you need to do the following:
+
+<UL>
+<LI>If point is not visible, simply move on the the next pixel
+<LI>Map co-ordinate from 'camera space' into 'light space'
+<LI>Project down to 2-D again.
+<LI>Use x' and y' to index into the shadow Z-buffer
+<LI>If z is greater than shadow zbuffer, then a surface is nearer to the point
+than the light - so shadow it, using a 'shadow intensity'
+</UL>
+
+<P>However, this method is pretty damn slow, as you might imagine.
+
+<H3><FONT COLOR=YELLOW><I>Shadow Volumes</I></FONT></H3>
+
+<P>Another method of implementing shadows is by the use of a shadow volume. A shadow volume is an <U>infinite</U> volume of space, where light cannot be seen, because it is being blocked by a polygon. Making the volume is simple enough: Make vectors from the origin of the light, through the vertices of a polygon. Normalize them, and hey presto, a simple, infinite volume. These are now rays. Their equation would be:
+
+<CENTER><P><TABLE WIDTH=65% CELLPADDING=0 CELLSPACING=0>
+<TR><TD>
+<TABLE><TR><TD>
+<PRE><FONT COLOR=#FF0000 FACE=Courier SIZE=2>
+D = Direction
+O = origin of light
+L = light source point
+Vertex = polygon vertex
+D = vertex - light
+O = vertex
+Ray = O + D*infinity
+</FONT></PRE>
+</TD></TR></TABLE>
+</TD></TR>
+</TABLE></CENTER>
+
+<P>For this to be useful, it needs to lie withing the view volume. So, clip it to the view volume. Clipping lines against planes is covered somewhere within these pages. You won't be able to classify the two endpoints against the plane however: you'll have to find the intersection of the line and plane, and find out whether that is a valid part of the volume. I.E. the volume cannot be in the portion of space between the polygon and the light source, can it? Once the volume is clipped, you'll end up with a set of polygons, which will define the shadow volume.
+
+<P>When it comes to rendering, it becomes more interesting. Consider the interation of the shadow volumes, with a ray shooting from the viewers position, for a given pixel. If a point on that ray is withing a shadow volume, then the point is clearly in shadow. But what if the point is between two shadow volumes? Then it is not in shadow! So, you will need some kind of flag. The flag will start at FALSE (point not in shadow). When it enters a shadow volume, it will become TRUE, and when it leaves, it will become FALSE again.
+
+<P>Still, for a complex scene, this system will also be quite slow. The number of shadow polygons increases sharply as the number of polygons and light sources increases. Perhaps such issues are why realtime systems still only use fake shadows...
+
+<H3><FONT COLOR=YELLOW><I>"Shadow Slabs"</I></FONT></H3>
+
+<P>This is a little idea I've been brewing in my mind... it works similar to the shadow volumes above, but you can have a model half in shadow, half out of shadow.
+
+<P>The idea is that we perform an extensive pre-process, and generate "slabs", which define where an area comes into shadow/goes out of shadow. This would be an extensive pre-process, calculating for all of the lights and polygons in the scene. However, when it is complete, you would have a list of polygons ("Shadow Slabs"), which define the borders of the shadow. Very similar to shadow volumes.
+
+<P>Then, when rendering, you would clip against these slabs, in 3D. Then, the one half of the object will be considered as "illuminated", so its just rendered as normal. The other half will be considered as "shadowed", and this is where you can choose what to do next. If there shadowed area has zero lighting, then you can just discard the polygons -- a crafty piece of culling. However, if the area is lit, then you can just darken the polygon, say divide the colours at the triangle vertices by 2, 4, 8 whatever, for gouraud shading. The advantage of this is that you can have models emerge/submerge into shadowed volumes, with little extra processor power. With a well designed engine structure, I think it could most definitely be done real time. Any thoughts? Has this already been done? It wouldn't suprise me if it had. I'd be interested if anyone implemented such a system though.</p>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

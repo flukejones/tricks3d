@@ -1,0 +1,243 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Beginners Section - Tile Based Black Book</TITLE>
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/beginners/tbbb.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/beginners/tbbb.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFF300">T</font><font color="#FFE700">i</font><font color="#FFDB00">l</font><font color="#FFCF00">e</font><font color="#FFC300"> </font><font color="#FFB700">B</font><font color="#FFAB00">a</font><font color="#FF9F00">s</font><font color="#FF9300">e</font><font color="#FF8700">d</font><font color="#FF7B00"> </font><font color="#FF6F00">B</font><font color="#FF6300">l</font><font color="#FF5700">a</font><font color="#FF4B00">c</font><font color="#FF3F00">k</font><font color="#FF3300"> </font><font color="#FF2700">B</font><font color="#FF1B00">o</font><font color="#FF0F00">o</font><font color="#FF0300">k</font><BR><FONT SIZE=-2>By: <A HREF="mailto:dragun@postmark.net">Dragun</A></FONT></H3>
+<!--End Title-->
+<H3><FONT COLOR=YELLOW><I>Introduction</FONT></I></H3>
+
+<P>In this tutorial, I'll cover how to make a 2D tile scrolling map and your very own map editor. I'll be talking in C but the techniques would work for any type of language. This tutorial is target for DJGPP and the Allegro graphics library but the idea of it is universal.
+
+<H3><FONT COLOR=YELLOW><I>2D Maps</FONT></I></H3>
+
+<P>To start off, I'll talk about 2D "maps" in general. Basically they are a two-demensional array of a structure (could be a regular integer but that's kind of boring and inflexible). The structure would hold the bitmap information, any tile attributes, and any damn thing you could think of. Sort of like this:
+
+<P>(Note that this can be used for a straight up rectangler tile map or a isometric map)
+
+<BLOCKQUOTE>
+<PRE><FONT COLOR=RED SIZE=2>
+	typedef struct
+	{
+	   char			bmp_info; 
+	   unsigned char	bitflag_1;	/* stuff to tell you if it's a animated tile or not */
+	   unsigned char	bitflag_2;	/* other attributes */
+	   unsigned char	bitflag_3;	/* other attributes */
+	   unsigned char	bitflag_4;	/* other attributes */
+	} map_data;
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Then you would declare the array like this:
+
+<BLOCKQUOTE>
+<PRE><FONT COLOR=RED SIZE=2>
+	map_data map[100][100];	/* a map that is 100x100 */
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>I'll explain why it is in array for those of you who are confused. Skip this part if you want. If you ever played chess, you'll notice the board is a two-demensional array, with squares going up and across both sides of the rectangle. Let's just say that you're on the first square at the top, making your array position map[0][0]. Since you're a damn rook and assuming that the knigh next to ya is dead, you want to move right one tile. Move right and so now your position will be map[0][1]. Wait a minute you might ask. Why increase the number in the right braket instead of the left? Well, since it is faster to blit a ROW of tiles then a COLUMN of tiles on some computers, we'll do it this way. In tile based games, instead of each member of map being a chess board square, it would be a tile of graphics.
+
+<P ALIGN=CENTER><IMG SRC="array.gif" ALT="Example of a map array" WIDTH=128 HEIGHT=128 BORDER=0 ALIGN="MIDDLE">
+
+<P>You could make the array three-demensional for multi-layered maps. Why? So the map would look better and have more variety. You could have the first layer for the base tile, which is the ground. The second layer would be for masked tiles, like when the grass fades into dirt. The third layer could be for objects and such. Multi-layered <I>may</I> be slower to draw to the screen but it has more flexibility. You really dont want to draw each damn fade for each tile combination. That's stupid.
+
+<BLOCKQUOTE>
+<PRE><FONT COLOR=RED SIZE=2>
+	map_data map[3][100][100];	/* a map that is 3x100x100 */
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<H3><FONT COLOR=YELLOW><I>The Buffer and Scrolling</FONT></I></H3>
+
+<P>To have smooth scrolling, you got to have a buffer that is somewhat larger than the drawing screen. When I say buffer, I mean an extra slice of video memory to draw on. You got to have some globals to keep trac of what map number you're starting to draw with, a x offset, and a y offset. The x offset is the amount of room that is left on the left side of the screen and the y offset is the room on the top. Lets just say that the screen resolution is 640x480 and you boxed out the last 160 pixels of the screen to make the drawing screen a nice 480x480 square and your tiles are 32x32. To have smooth scrolling you need a buffer of at least 544x544 (which leave room for a 17x17 map of 32x32 tiles). This will leave room for a "scrolling tile" on each side of the buffer.
+
+<P>Some may disagree with the following method but it's the easiest of 'em all. To start the whole process, just make a tile algorithm that blits the array onto the buffer. Of course you got to have global map coordinates counters. I'll call it mapX and mapY. Create a function that takes in these two map coordinate and blit from their. Something like this:
+
+<BLOCKQUOTE>
+<PRE><FONT COLOR=RED SIZE=2>
+	void DrawMap(int mx, int my)
+	{
+	   int X = mx, int Y = my;
+
+	   for(int i = 0; i < 544; i += 32)
+	   {
+	      for(int j = 0; j < 544; j += 32)
+    	      {
+	      blit(map[y][x].bmp_info, to_screen, (j+x_offset), (i+y_offset));
+	      X++;
+	      }
+	   X = mx;
+	   Y++;
+	   }
+	}
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>DrawMap(int, int) will take in starting map coordinates and use them to blit a 17x17 tile buffer. The x & y offsets are there to shift the map correctly into place. So, what you're really doing is increasing the x_offset and y_offset everytime you press the appropiate key. To make this accurate everytime, you got to redraw the map and checc the x & y offsets every frame. By checcing the offsets, I mean by if the x or y offset is greater than 32 or less then zero, you have to decrease the map or increse the global map coordinates, respectively.
+
+<P>Confused? I'll explain why. Just say you have a 64x64 picture and have a 80x80 picture. When the 80x80 is centered with the 64x64, the offsets of both x and y are be -8 (extra 8 pixels on all sides; for x axis: 64+(8+8) = 80; for y axis: 64+(8+8) = 80). When you move the 80x80 down 8 and right 8, the y offset that was -8 becomes 0 and the x offset that was -8 also becomes 0. Now you have no more buffer (on the left and top that is, the right and the bottom have offsets of +16 now) and it is time to remake the offsets. Since you moved down and right, the map coordinates have to be subtracted by one. This is because you moved down and right and the buffer that was there is now being shown and a new buffer have to take its place. If the pict is moved up and left, you do exactly the opposite.
+
+<H3><FONT COLOR=YELLOW><I>Controlling Objects</FONT></I></H3>
+
+<P>Controlling objects are simple. All you have to do is make a structure that hold their x & y offsets and the current map coordinates they're on. Something like this:
+
+<BLOCKQUOTE>
+<PRE><FONT COLOR=RED SIZE=2>
+	typedef struct
+	{
+	   int MX, MY;
+	   int x_offset, y_offset;
+	   unsigned char bmp;
+	} obj_info;
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>And to draw it onto the screen all you have to do is calculate the (x, y) position with this:
+
+<BLOCKQUOTE>
+<PRE><FONT COLOR=RED SIZE=2>
+	x = (((obj_status.MX - mapX) * 32) + obj_status.x_offset);
+	y = (((obj_status.MY - mapY) * 32) + obj_status.y_offset);
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>This would take the object's map coordinate and subtract the current map coordinate away from it and add the offset to it. The x & y offsets are there to shift the object correctly. When moving the object, you do the same thing with it as the map shifting. You would only do the drawing and the calculations of the object if it is in range with the screen (starting map coordinates).
+
+<H3><FONT COLOR=YELLOW><I>The Level Editor</FONT></I></H3>
+
+<p>This is the smartest thing to do: <B>MAKE THE LEVEL EDITOR BEFORE YOU MAKE THE SCROLLING ENGINE</B>. This is the best way cuz when you're making the editor, you're doing the scrolling anyway. And this will also avoid making your first map by filling in an array.
+
+<P>To start this off, level editors are event driven, meaning that every thing you do calls up a function to do that task. So when you init the screen, you have a function that displays the map region and the menu. How do you know what to do? Use the keys or have bitmapped buttons or something. I cant really explain but you gotta see it to believe. The source code to a map editor is at the end of the tutorial (in .zip format).
+
+<H4 ALIGN=CENTER>Download: <A HREF="tbbb.zip">tbbb.zip (Source & EXE's)</A></H4>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+//-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

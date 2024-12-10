@@ -18,8 +18,9 @@ struct CLIOptions {
     pub fullscreen: Option<bool>,
 }
 
-const WIDTH: u32 = 640 / 2;
-const HEIGHT: u32 = 480 / 2;
+const NAME: &str = "ch03_1";
+const WIDTH: u32 = 640;
+const HEIGHT: u32 = 480;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let options: CLIOptions = argh::from_env();
@@ -42,33 +43,54 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let num_disp = video_ctx.num_video_displays()?;
     for n in 0..num_disp {
-        info!("Found display {}", video_ctx.display_name(n)?);
+        info!(
+            "Found display {}, mode: {:?}",
+            video_ctx.display_name(n)?,
+            video_ctx.desktop_display_mode(n)?
+        );
     }
+    let mode = video_ctx.current_display_mode(0).unwrap();
     let window = {
         let fullscreen = options.fullscreen.unwrap_or_default();
         if fullscreen {
             video_ctx
-                .window("ROOM4DOOM", WIDTH, HEIGHT)
+                .window(
+                    NAME,
+                    // for plain desktop mode, 320x200 at 4:3 scale, it is normally 16:10
+                    // (mode.w as f32 * (mode.h as f32 / mode.w as f32)) as u32,
+                    WIDTH, HEIGHT,
+                )
                 .position_centered()
-                .fullscreen()
+                .fullscreen_desktop()
+                .hidden()
                 .build()?
         } else {
             video_ctx
-                .window("ROOM4DOOM", WIDTH, HEIGHT)
+                .window(NAME, WIDTH, HEIGHT)
                 .position_centered()
+                .resizable()
+                .hidden()
                 .build()?
         }
     };
+    dbg!(window.size());
 
-    let canvas = window.into_canvas().accelerated().build()?;
-    let mut buffer = Framebuffer::new(canvas, WIDTH as usize, HEIGHT as usize);
+    let canvas = window.into_canvas().software().build()?;
+    let mut buffer = Framebuffer::new(canvas, mode.w as usize, mode.h as usize);
 
     // Main loop here
     let mut ticks = TimeStep::new();
     let mut running = true;
+    let mut resized = false;
     loop {
         if !running {
             break;
+        }
+        if resized {
+            let mut canvas = buffer.canvas;
+            canvas.clear();
+            buffer = Framebuffer::new(canvas, WIDTH as usize, HEIGHT as usize);
+            resized = false;
         }
 
         ticks.run_this(|| {
@@ -87,6 +109,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     },
 
                     Event::Quit { .. } => running = false, // Early out if Quit
+
+                    Event::Window { win_event, .. } => match win_event {
+                        sdl2::event::WindowEvent::Moved(_, _) => {
+                            resized = true;
+                        }
+                        sdl2::event::WindowEvent::Resized(_, _) => {
+                            resized = true;
+                        }
+                        sdl2::event::WindowEvent::DisplayChanged(_) => {
+                            resized = true;
+                        }
+                        _ => {}
+                    },
                     _ => {}
                 }
             }
@@ -142,9 +177,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         buffer.blit();
         buffer.clear(&[0, 0]);
 
-        if let Some(fps) = ticks.frame_rate() {
-            info!("FPS = {}", fps.frames);
-        }
+        // if let Some(fps) = ticks.frame_rate() {
+        //     info!("FPS = {}", fps.frames);
+        // }
     }
 
     Ok(())

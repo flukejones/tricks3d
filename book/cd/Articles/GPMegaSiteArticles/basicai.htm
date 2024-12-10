@@ -1,0 +1,175 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Beginners Section - Basics of Game AI</TITLE>
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/beginners/basicai.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/beginners/basicai.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFF000">B</font><font color="#FFE100">a</font><font color="#FFD200">s</font><font color="#FFC300">i</font><font color="#FFB400">c</font><font color="#FFA500">s</font><font color="#FF9600"> </font><font color="#FF8700">o</font><font color="#FF7800">f</font><font color="#FF6900"> </font><font color="#FF5A00">G</font><font color="#FF4B00">a</font><font color="#FF3C00">m</font><font color="#FF2D00">e</font><font color="#FF1E00"> </font><font color="#FF0F00">A</font><font color="#FF0000">I</font><br><FONT SIZE=-2>By: <A HREF="mailto:ghowland@lupinegames.com">Geoff Howland</a></FONT></H3>
+<!--End Title-->
+<P>Game AI (artificial intelligence) is the subject of a lot of discussion recently, with good cause.  As games forge ahead in the areas of graphics and sounds it becomes increasingly obvious when the actions of the game controlled players are not functioning in an "intelligent" manner.
+
+<P>More important than the game controlled player's "intelligence", is really the game controlled player's stupidity.  Most game players are not expecting to load up the newest first person shooter and face off against Professor Moriarty with a nail gun.  They do expect that they will not be playing against an inbred lobotomy patient that is confounded by the complexity of a corner.
+
+<H3><FONT COLOR=YELLOW><I>Unit Behavioral AI</I></FONT></H3>
+<P>Game AI is not necessarily AI in the standard meaning of the word.  Game AI for units is really an attempt to program life-like attributes to provide a challenge or an appearance of reality.
+
+<P>A guard in a game that stands in one place never moving can seem very unrealistic.  However, if you create a routine to make that guard look around in different directions from time to time, or change his posture, he can start to look more alive.  By creating a situation where another guard who walks in a pre-made path occasionally stops in front of the standing guard and appears to speak to him, the appearance of reality can be increased greatly.
+
+<P>There are two categories of actions in unit AI: reactionary and spontaneous.
+
+<P>Units act in a reactionary manner whenever they are responding to a change in their environment.  If an enemy spots you and starts to run towards you and shoot, then they have acted as a reaction to seeing you.
+
+<P>Units act in a spontaneous manner when they perform an action that is not based on any change in their environment.  A unit that decides to move from his standing guard post to a walking sentry around the base has made a spontaneous action.
+
+<P>By using both types of unit behaviors in your game, you can create the illusion that you have "intelligent" units who are autonomous, and not necessarily simple machines.
+
+<H3><FONT COLOR=YELLOW><I>Reactionary AI</I></FONT></H3>
+<P>Reactionary inputs should always be based on the senses of the units.  When modeling AI after human characters you need to take into consideration their range and distance of sight, their sense of hearing and if applicable, smell.
+
+<P>Creating levels of alertness is a good way to handle the input of different senses.  If a unit sees an enemy directly in its sights, then it should switch to an alert mode that corresponds to how it would react to confronting an enemy.  If the unit does not see the enemy but hears footsteps or a gunshot, then the unit should go to a corresponding level of alert that would apply to non-direct knowledge of the situation.
+
+<P>In the case of a unit that was a guard, hearing a gunshot would make the guard act to investigate in the area the shot was fired in.  Hearing footsteps may make the guard stand in waiting to ambush the walking unit.  All of these different kinds of actions and alerts can be set up in a rule-based or fuzzy logic system so that you can interpret each sound or sighting by every unit and have them react in an appropriate manner.
+
+<P>A general alert is also an important factor in the appearance of reality and intelligence in a game.  If you have been running around shooting up a base full of people and keep encountering new enemies who are completely clueless to the fact there has been non-stop gun fire for the past ten minutes, it is going to really seem out of place.  By creating an alert system for all the units, and perhaps an alert plan, you can strengthen the appearance of reality in your game world.
+
+<P>An alert plan would consist of rules that units would follow if there were an alert, as opposed to rules for non-alert situations.  For instance, if there was an alert you could have all units that are in non-critical areas run to the entrances of the base to assist in the defense.
+
+<H3><FONT COLOR=YELLOW><I>Spontaneous AI</I></FONT></H3>
+<P>Spontaneous AI is extremely important in creating a sense of life in your game worlds.  If everyone you meet is just standing there waiting for you to talk to them or kill them, or almost worse, wandering around aimlessly, it is not going to be very convincing for the player.
+
+<P>Some methods of breaking up the standing around problem are to give each of the units a set of non-alert goals.  These could include walking pre-set paths, walking to pre-set areas randomly, stopping next to other units occasionally when passing them and walking with other units to pre-set destinations.  I have said pre-set in all of these situations because unless you come up with a very good algorithm for setting destinations or paths your units are going to look like they are wandering aimlessly.
+
+<H3><FONT COLOR=YELLOW><I>Unit Actions</I></FONT></H3>
+<P>What really makes a game unit look intelligent is their actions.  If they move in a way that the player might, or do an action, such as ducking, in a situation that the player might, then the unit can look intelligent.  You do not necessarily need a lot of actions to create an illusion of intelligent actions, you just need enough to cover whatever basic situations your units will be involved in.
+
+<P>The more areas you cover, if you cover them well, the greater the chance that your players will believe your units are acting "intelligently".  Put yourself in the place of your units.  What would you do in their situation?  How would you respond to various forms of attack or enemy encounters?  What would you be doing if nothing was going on at all?
+
+<P>If you answer these, and correctly implement them for each situation your units will encounter you will maximize your chances of having intelligent looking units, and that is the first step to creating a good, solid game AI.</P>
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+//-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

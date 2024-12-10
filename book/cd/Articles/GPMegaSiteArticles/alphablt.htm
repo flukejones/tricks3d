@@ -1,0 +1,263 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - VB Section - Alpha Blitting With VB/DirectDraw</TITLE>
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/vb/alphablt.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/vb/alphablt.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFF800">A</font><font color="#FFF100">l</font><font color="#FFEA00">p</font><font color="#FFE300">h</font><font color="#FFDC00">a</font><font color="#FFD500"> </font><font color="#FFCE00">B</font><font color="#FFC700">l</font><font color="#FFC000">i</font><font color="#FFB900">t</font><font color="#FFB200">t</font><font color="#FFAB00">i</font><font color="#FFA400">n</font><font color="#FF9D00">g</font><font color="#FF9600"> </font><font color="#FF8F00">W</font><font color="#FF8800">i</font><font color="#FF8100">t</font><font color="#FF7A00">h</font><font color="#FF7300"> </font><font color="#FF6C00">V</font><font color="#FF6500">B</font><font color="#FF5E00">/</font><font color="#FF5700">D</font><font color="#FF5000">i</font><font color="#FF4900">r</font><font color="#FF4200">e</font><font color="#FF3B00">c</font><font color="#FF3400">t</font><font color="#FF2D00">D</font><font color="#FF2600">r</font><font color="#FF1F00">a</font><font color="#FF1800">w</font><BR><FONT SIZE=-2>By: <A HREF="mailto:mirekk@iname.com">mirekk@iname.com</A></FONT></H3>
+<!--End Title-->
+
+<H3><FONT COLOR=YELLOW><I>Introduction</I></FONT></H3>
+
+<P>Now that you can paint opaque
+figures on the screen (if you can't, get your feet we with the BitBlt tutorial)
+and you might be wondering how you make an image transparent. This is the
+tutorial for you. Here, the semi-complex world of alpha-blitting is made
+wholly transparent (no pun intended). Alpha-blitting is just a fancy word
+that means painting an image with varying degrees of transparency. Here,
+I'll be showing you how to do that with BitBlt, although it is quite easy
+to implement it in DirectDraw.
+
+<H3><FONT COLOR=YELLOW><I>The Code</I></FONT></H3>
+
+<P>Here, we'll be making a 256
+color image transparent. This consists of a few simple steps. First, we
+have to make a lookup table. This simply determines what color the resulting
+pixel should be when the source and destination images are mixed. This
+is influenced by the varying degrees of transparency, or what alpha-channel
+is selected. In layman's terms, that is an array that stores the result
+of a certain color overlayed to another.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	For a% = 0 To 255
+		'Source palette
+		Blue_source% = a% Mod 4
+		Green_source% = (a% \ 4) Mod 8
+		Red_source% = a% \ 32
+		
+		For b% = 0 To 255
+			Blue_dest% = b% Mod 4
+			Green_dest% = (b% \ 4) Mod 8
+			Red_dest% = b% \ 32
+		
+			'along 7 alpha channels
+			For c% = 1 To 7
+				Red_combo% = ((pal2(Red_source%) * (8 - c%)) + (pal2(Red_dest%) * c%)) / 8
+				Blue_combo% = ((pal1(Blue_source%) * (8 - c%)) + (pal1(Blue_dest%) * c%)) / 8
+				Green_combo% = ((pal2(Green_source%) * (8 - c%)) + (pal2(Green_source%) * c%)) / 8
+			
+				'the closest color match is going to be in the look-up table
+				trans(a%, b%, c%) = CByte((Blue_combo% \ 85) + (Green_combo% \ 36) * 4 + (Red_combo% \ 36) * 32)
+			Next
+		Next
+	Next
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Basically, the c% loop is where the magic happens. Here, the colors are mixed, and
+the result is stored in the trans array. The nearest color is found through
+the use of the CByte function.
+
+<P>Now, we have to make a matrix that points to the pixels in the sprite:
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	With sa
+		.cbElements = 1
+		.cDims = 2
+		.Bounds(0).lLbound = 0
+		.Bounds(0).cElements = bmp.bmHeight
+		.Bounds(1).lLbound = 0
+		.Bounds(1).cElements = bmp.bmWidthBytes
+		.pvData = bmp.bmBits
+	End With
+	
+	CopyMemory ByVal VarPtrArray(pict), VarPtr(sa), 4
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>This has to be done three times, for each of the pictures (the buffer, the background
+and the source).  We also have to copy the source bitmap onto the buffer:
+	
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	For c = 0 To UBound(pict, 1)
+		For r = 0 To UBound(pict, 2)
+			pict(c, r) = pict2(c, r)
+		Next
+	Next
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Now, the next big chunk of code is the drawing:
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	For c = 0 To 107
+		For r = 0 To 126
+			'work out the proportion of source vs destination
+			'0 = 100% source
+			'8 = 100% destination
+			Alpha = pict3(c + 108, r)
+			If Alpha > 0 Then 'not transparent
+				If Alpha > 7 Then 'totally opaque
+					pict(c + X, r - Y) = pict3(c, r)
+				Else 'alphablt
+					pict(c + X, r - Y) = trans(pict2(c + X, r - Y), pict3(c, r), Alpha)
+				End If
+			End If
+		Next
+	Next
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>This goes through the image,
+pixel-by-pixel to find the appropriate color to draw according to the alpha-channel.
+Pict, Pict2, and Pict3 are (respectively) the source, destination, and
+the combination of the two. If the image is opaque, pict is drawn. If it
+is wholly transparent, pict2 is drawn. Pict3 is the palette for the combination
+of the two. This draws a bunny head, from my upcoming game. The less you
+ask, the less scared you'll be (about my game that is).
+
+<P>Now, actually, this is a hacked
+up version of a tutorial from David Brebner's website, Unlimited Realities.
+I've simplified it a bit and changed around half of it to be easier to
+understand and more readable. Coming soon . . . alpha-blitting in 16 million
+colors.
+
+<P>Oh yeah, make sure to download
+the source, since I did not include every single line of code as in my
+other tutorials, to concentrate on the main points that really make alpha-blitting
+possible.
+
+<H4 ALIGN=CENTER>Download: <A HREF="alpha.zip">alpha.zip (Source Code)</A></H4>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+//-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,189 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Industry Section - 2D vs. 3D: Fight of the Century?</TITLE>
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/industry/2dvs3d.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/industry/2dvs3d.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFF800">2</font><font color="#FFF100">D</font><font color="#FFEA00"> </font><font color="#FFE300">v</font><font color="#FFDC00">s</font><font color="#FFD500">.</font><font color="#FFCE00"> </font><font color="#FFC700">3</font><font color="#FFC000">D</font><font color="#FFB900">:</font><font color="#FFB200"> </font><font color="#FFAB00">F</font><font color="#FFA400">i</font><font color="#FF9D00">g</font><font color="#FF9600">h</font><font color="#FF8F00">t</font><font color="#FF8800"> </font><font color="#FF8100">o</font><font color="#FF7A00">f</font><font color="#FF7300"> </font><font color="#FF6C00">t</font><font color="#FF6500">h</font><font color="#FF5E00">e</font><font color="#FF5700"> </font><font color="#FF5000">C</font><font color="#FF4900">e</font><font color="#FF4200">n</font><font color="#FF3B00">t</font><font color="#FF3400">u</font><font color="#FF2D00">r</font><font color="#FF2600">y</font><font color="#FF1F00">?</font><br><FONT SIZE=-2>By: <A HREF="mailto:ghowland@lupinegames.com">Geoff Howland</a></FONT></H3>
+<!--End Title-->
+
+<P>For the past few years there have been heated debates about whether 2D has died and 3D now reigns as the only way for video games to be made.  If you looked at many the line-ups in development companies, you may very well come to this conclusion.  However, the top sales chart seems to disagree with this.</P>
+
+<H3><FONT COLOR=YELLOW><I>Top 10 Best Sellers for PC Entertainment Software June 1998</FONT></I></H3>
+<table width=100% border=0>
+<tr><td width=50%>1. Starcraft (Blizzard)</td><td width=50%>2D</td></tr>
+<tr><td width=50%>2. Unreal (GT)</td><td width=50%><b>3D</b></td></tr>
+<tr><td width=50%>3. Final Fantasy VII (Eidos)</td><td width=50%><b>3D</b></td></tr>
+<tr><td width=50%>4. Deer Hunter (GT)</td><td width=50%>2D</td></tr>
+<tr><td width=50%>5. Police Quest: SWAT 2 (Cendant)</td><td width=50%>2D</td></tr>
+<tr><td width=50%>6. Rocky Mountain Trophy Hunter (GT)</td><td width=50%>2D</td></tr>
+<tr><td width=50%>7. Cabela's Big Game Hunter (Activision)</td><td width=50%>2D</td></tr>
+<tr><td width=50%>8. Diablo (Cendant)</td><td width=50%>2D</td></tr>
+<tr><td width=50%>9. Myst (Broderbund)</td><td width=50%>2D</td></tr>
+<tr><td width=50%>10. Titanic: Adventure Out of Time</td><td width=50%>2D</td></tr>
+</table>
+
+<P>The top selling game and 8 out of the top 10 selling games are 2D.  What does this say about the theory that 2D games are dead?  It certainly says that game buyers apparently haven't heard the news yet.</P>
+
+<H3><FONT COLOR=YELLOW><I>What is the difference between 2D and 3D?</FONT></I></H3>
+<P>To understand anything you must know what elements it possesses.  An easy way to determine something's elements is to compare it to something else and find out what's different.</P>
+
+<P>2D and 3D are both ways of displaying data to the player.  Both are viewed on a 2D screen, the monitor.  The difference begins with data storage, to display 2D images the mainstream method is to store all of the data in pre-drawn image files.  To display 3D images you store information about an object, such as its vertices or polygons that make up the object.  </P>
+
+<P>3D objects can be viewed from any angle on the screen by doing a series of mathematical equations to rotate and scale them.  The more vertices or polygons that make up the 3D object, the more equations that must be done.  There is additional data storage needed to store 2D images that will be "textured" on to the 3D object to make it look more realistic.</P>
+
+<P>To view an object drawn from a 2D image from more than one angle you must pre-draw the 2D object at the different angle and load it out of a different image file.  If you consider that to rotate a human out of 2D image files will take at least 8 different angles worth of image files you can see that these will begin to add up.  Especially when you normally want to animate the objects as well, this can be many times more than an object saved in a 3D format.</P>
+
+<P>Judging just from the data files and how they can be displayed, immediately the difference that 3D holds more flexibility in drawing images can be determined.</P>
+
+<H3><FONT COLOR=YELLOW><I>Advantages of 3D</FONT></I></H3>
+<P>3D is very flexible in three very important ways.  The first way is the way in which the player sees the world presented.  3D games can draw the world at any angle and can have the player walk in any increment of steps they choose.  Obviously, this can not be done from 2D images alone as there can be millions of possibilities in just a small area.  Games such as Quake have shown the possibilities of drawing environments where you can move anywhere.</P>
+
+<P>The second way that 3D's flexibility can be seen is also demonstrated by Quake, in the animation of 3D objects.  To animate 2D objects in such a way would be very limiting in the angles they could be viewed from and the space for storing all of the animations could grow quite prohibitively.  3D animations also have the ability to be done on the fly.  3D objects can be given rules for deformation or movement that allow possibilities for being drawn that were not inherently programmed in to the game.  This freedom is a major advantage over 2D games but has not been used very much in games currently.</P>
+
+<P>The third way that 3D is flexible over 2D games is that objects can be created very simply by using mathematical equations or by placing primitive objects together to create new objects on the fly.  This is the direct opposite from the way 2D works, however this advantage of 3D has never been used during the gameplay of any game that I am aware of.  Game editors allow this in creating new levels or items but it has never been implemented in gameplay as of yet.  Look out for this in the future though as it holds a lot of possibilities, most easily visualized in worlds such as 3D MUD's (Multi-User Dungeons).</P>
+
+<H3><FONT COLOR=YELLOW><I>Advantages of 2D</FONT></I></H3>
+<P>2D holds some advantages of its own over 3D displaying methods.  The first advantage of 2D is that 2D images can currently be drawn in more detail than 3D images can be displayed.  Objects can be drawn with more curves, faces and points than could be possibly for a 3D display system to currently handle.  This can be a very large advantage as it makes better looking screens if your game does not require rotating views.</P>
+
+<P>The second advantage of 2D is that it is relatively very fast to draw and process.  Because all of the graphics have been pre-made all you must do is draw them to the screen and video cards have become very efficient at doing this.  You can get the 20 to 30 frames per second that are required for real time video games easily.  This leaves a lot of processor time left over for doing other behind-the-scenes calculations that a game using 3D displaying method would not be able to.  For games that want to have a lot of processor power to use for the computer player's artificial intelligence this is a good way to go.  3D cards are becoming faster and faster but there are still calculations in a 3D world that may never be implemented in hardware, so 2D will be faster for a few years at least.</P>
+
+<P>The third advantage of 2D is that it is currently faster to develop 2D display engines than it is to develop 3D ones.  This may not stay a constant as 3D engines will eventually become standardized, but with their current rate of change, this is currently the case.</P>
+
+<P>There is another advantage that the 2D often has over 3D, although this is not a black and white issue as 3D games can be made to display in the same way as 2D games are and then there is no advantage.  In the case of a first person 3D display compared to an overhead or otherwise non-rotating 2D display many novice players or non-gamers find it easier to play in, understand and control the 2D interface better.  Games like Descent and Quake take a level of control that more experienced players or gamers will have no problems with, but non-gamers often find it impossible to navigate through the world or aim and bump in to walls until they give up.  The level of freedom that can be given in 3D games can often just be too much for novices or non-gamers so this needs to be taken into consideration as well.  However, games such as MechCommander (Microprose) are displayed in the same format as a 2D game would be displayed, so in that case there is no advantage for 2D in this area.</P>
+
+<H3><FONT COLOR=YELLOW><I>Game Toolbox</FONT></I></H3>
+<P>What you, as a game designer, need to decide is what your game is going to look like and how it will be controlled.  If your game needs a lot of flexibility, animations and you have enough time and resources then a 3D display engine will probably be your best bet.  If you do not need some of the areas of flexibility and want the ability to produce crystal sharp images and display them quickly and have a shorter development time then a 2D display method can be the way to go.</P>
+
+<P>The trick here is not to look at whether 3D is better than 2D, but what tool will best fulfill your needs.  There is obviously still a high demand for 2D games from the game buying public and your not doing this for your health, are you?</P>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+//-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

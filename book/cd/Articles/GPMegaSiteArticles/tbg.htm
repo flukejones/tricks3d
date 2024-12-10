@@ -1,0 +1,237 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Beginners Section - Tile Based Gold</TITLE>
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/beginners/tbg.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/beginners/tbg.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFEE00">T</font><font color="#FFDD00">i</font><font color="#FFCC00">l</font><font color="#FFBB00">e</font><font color="#FFAA00"> </font><font color="#FF9900">B</font><font color="#FF8800">a</font><font color="#FF7700">s</font><font color="#FF6600">e</font><font color="#FF5500">d</font><font color="#FF4400"> </font><font color="#FF3300">G</font><font color="#FF2200">o</font><font color="#FF1100">l</font><font color="#FF0000">d</font><BR><FONT SIZE=-2>By: Lynch Hung</FONT></H3>
+<!--End Title-->
+
+<H3><FONT COLOR=YELLOW><I>2D Logic and Basics</I></FONT></H3>
+
+<P>"2D Logic" is thinking and designing in a 2D world. Lets say you're playing Raptor(TM) and you're moving your plane while the scenery parallaxed scrolled behind ya. Besides worrying what'll peg your ass, something else should have crossed your mind... 'How the hell is the game done'? Besides that, 'How do they come up with this shit'??
+
+<P>To save you some brain teasing, the baccground of a 2D game is made up of tiles (or at least most of them. I've seem some games where chunks of bitmaps are put together). Bacc in the days when mode13h (320x256x256) was standard, tiles were 16x16 pixels big. Now as 640x480 (SVGA, damnit) a standard, tiles should be at least 32x32 pixels. Advantages of a 32x32 tile is repetitiveness and some bitch ass artwork. But you could make the tile another size. A 40x40 tile is good, cuz it divides evenly with 640&480 and so does 800&600. But it becomes a bitch when you go to 1024&768. Netherless, it just depends on your target video mode.
+
+<P>You got the tile thingy down, what next? Displaying your graphics on the screen should be of a consideration. In graphical terminology, something called Blit Blocc Transfering (blitting) was developed to shift chunks of an image to and fro. Cool, you might think. Just blit tiles on the screen and you got yourself a "world". Not quite. You got to have some sort of representation for your maps. Something that is organized and can be manipulated easily. This is where your BASIC days should come into play. If you declare a two-dimensional array, you'll notice that it makes a perfect
+box (duh..) and what are maps? Exactly, a damn box or rectangle.
+
+<P>Before jumping into maps, global map coordinates should be justified. Lets just say an array called MAP[10][10] has been defined. And if our screen can only be 5x5, we need an x and y value to control what we do from the current
+map location to the limited display size. So with this, we can make a function that takes map coordinates and display the world 'til we hit our video display limit.
+
+<P>Also note that whatever you want to have in a 2D world, they must obey the coordinate "laws". This means that you have to worry how the object can be controlled and projected on the screen respectively with the map. So along
+with map coordinates (which is strictly for the tiles BTW), world coordinates will come into play. World coordinates starts at (0, 0) and goes on til you reach your map limit. Whenever you move the object, you increase it or
+decrease it. If it goes pass the screen limit, fucc it. Keep on moving the world coordinates but just dont draw it.
+
+<H3><FONT COLOR=YELLOW><I>2D Maps</I></FONT></H3>
+
+<P>You might think that a 2D map can be held together with a two-dimensional array. And if you were told to have multiple layers, you'll say just make three-dimensional. Yeah, you probably think you're Superman by now. But what
+bout animated tiles? This is where you drop the old school stuff and hit the big boys, Structures and Classes.
+
+<P>First off, you need a structure to hold all the data a tile can hold. Stuff like the bitmap number, attributes, and other shit. This allows more flexibility than an integer array. You could even have more graphic layers without upping the array subscript. But for this tutorial's sake, I'll keep the structure simple enough to hold only the bitmap information.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	typedef struct
+	{
+		unsigned int base,
+			     mask,
+			     base_anim[8],
+			     mask_anim[8];
+	} TILE_INFO;
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Speaking of graphics layers, they are simply just tiles of graphics on top one another. They're basically there for the graphical and simplicity effect. When you have a game, and have a part of the map that is grass and the other
+side is dirt or sand, you dont want to draw each damn tile of when and where the grass fades to dirt or vice versa. An easier method is to have a base tile with a masked (a blitting function that skips a pre-determined palette number
+to show what's behind the masked-blitted image) tile over it. This way it can be flexible to have a texture faded to another texture. For animated tiles, all you do is blit the frame number every certain timeframe.
+
+<P>Now instead of having just an integer array, you can have a structure array. But you dont want to make the array global. That's kinda letting it get unorganized. Since you're bound to have map blitting functions, loading and
+saving functions (for the map editor and the game as well), just shove everything (functions and array) in a class. This is to prevent any other bad ass function from altering it. When you design your tile class, keep in mind
+to have an assignment function for the tiles. The assignment function basically takes in a bitmap number and inserts it into the map array, respective to the map location you specified.
+
+<H3><FONT COLOR=YELLOW><I>Buffering and Scrolling</I></FONT></H3>
+
+<P>To have smooth scrolling, you got to have a buffer that is somewhat larger than the drawing screen. When I say buffer, I mean an extra slice of video memory to draw on. This is where you use the map coordinates talked about earlier. You got to have some globals to keep tracc of what map number you're starting to draw
+with, an x offset, and a y offset. The x offset is the amount of room that is left on the left side of the screen and the y offset is the room on the top.
+
+<P>Lets just say that the screen resolution is 640x480 and you boxed out the last 160 pixels of the screen to make the drawing screen a nice 480x480 square and your tiles are 32x32. To have smooth scrolling you need a buffer of at least
+544x544 (which leave room for a 17x17 map of 32x32 tiles). This will leave room for a "scrolling tile" on each side of the buffer.
+
+<P>Some may disagree with the following method but it's the easiest of 'em all. To start the whole process, just make a tile algorithm that blits the structure array onto the buffer. Of course you got to have map coordinates. I'll call it
+mapX and mapY. Create a function that takes in these two map coordinate and blit from there. Something like this;
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	void DrawMap(int x, int y)
+	{
+	   register int i, j, MX, MY;
+
+	   /* assigning map coord for base level*/
+	   MX = x;
+	   MY = y;
+
+	   /* base level blitting */
+	   for(i = 0; i < 17; i++)
+	   {
+	      for(j = 0; j < 17; j++)
+	      {
+	         blit((MX * 32) + xoff, (MY * 32) + yoff, image, screen);
+	         MX++;
+	      }
+	      MX = x;
+	      MY++;
+	   }
+	}
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>DrawMap(int, int) will take in starting map coordinates and use them to blit a 17x17 tile buffer. The x & y offsets are there to shift the map correctly into place. So, what you're really doing is increasing the x_offset and y_offset
+every time you press the appropriate key. To make this accurate every time, you got to redraw the map and checc the x & y offsets every frame. By checcing the offsets, I mean by if the x or y offset is greater than 32 or less then zero,
+you have to decrease the map or increse the global map coordinates, respectively.
+
+<P>Confused? I'll explain why. Just say you have a 64x64 picture and have a 80x80 picture. When the 80x80 is centered with the 64x64, the offsets of both x and y are -8 (extra 8 pixels on all sides; for x axis: 64+(8+8) = 80; for y axis:
+64+(8+8) = 80). When you move the 80x80 pict down 8 and right 8, the y offset that was -8 becomes 0 and the x offset that was -8 also becomes 0. Now you have no more buffer (on the left and top that is, the right and the bottom have offsets of +16 now) and it is time to remake the offsets. Since you moved down and right, the both map coordinates have to be subtracted by one. This is cuz you moved down and right and the buffer that was there is now being shown and a new buffer have to take its place. If the pict is moved up and left, you do exactly the opposite.
+
+<P>Also, when you update the x & y offsets, also update the map world x & y coordinates of the map. You do this to draw the objects on the map relative to the player's position. Dont get map coordinates confused with world map
+coordinates. Map coordinates are alone the grid section you're in. World map coordinates are the actual coordinates that you're located. Which leads us into our next topic....
+
+<H3><FONT COLOR=YELLOW><I>Controlling Objects</I></FONT></H3>
+
+<P>Controlling objects are simple. All you have to do is keep tracc of their world x & y coordinates. And to draw them at the correct place is just a simple formula.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	x = object.worldx - map.worldx;
+	y = object.worldy - map.worldy;
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>This works well cuz lets say the map's x & y is at (0, 0) and the object's x & y is at (100, 100). And when you move RIGHT 5 pixels, the map's coordinates is now (5, 0). Instead of drawing the object at (100, 100), you now draw the it at (95, 100). Look at the formula to justify this.</P>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+//-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

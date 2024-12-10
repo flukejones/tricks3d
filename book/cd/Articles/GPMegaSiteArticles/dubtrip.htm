@@ -1,0 +1,368 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - Beginners Section - Double and Triple-Buffering</TITLE>
+<META NAME="DESCRIPTION" CONTENT="In this introductory article written by Dominic Filion, he dives into the details of using the various page flipping and buffering methods of todays games.  He discusses the technical details of montors, and how they relate to page flipping and a good vertical sync.  A good article for an introduction to page flipping or buffering.">
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/beginners/dubtrip.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/beginners/dubtrip.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFF600">D</font><font color="#FFED00">o</font><font color="#FFE400">u</font><font color="#FFDB00">b</font><font color="#FFD200">l</font><font color="#FFC900">e</font><font color="#FFC000"> </font><font color="#FFB700">a</font><font color="#FFAE00">n</font><font color="#FFA500">d</font><font color="#FF9C00"> </font><font color="#FF9300">T</font><font color="#FF8A00">r</font><font color="#FF8100">i</font><font color="#FF7800">p</font><font color="#FF6F00">l</font><font color="#FF6600">e</font><font color="#FF5D00">-</font><font color="#FF5400">B</font><font color="#FF4B00">u</font><font color="#FF4200">f</font><font color="#FF3900">f</font><font color="#FF3000">e</font><font color="#FF2700">r</font><font color="#FF1E00">i</font><font color="#FF1500">n</font><font color="#FF0C00">g</font><BR><FONT SIZE=-2>By: Dominic Filion</FONT></H3>
+<!--End Title-->
+
+<P><A href="http://members.xoom.com/armagammon/">Armagammon Game Engine</A>
+
+<H3><FONT COLOR=YELLOW><I>Page Flipping</I></FONT></H3>
+
+<P>What is it? Let's look at the DirectX Reference 
+      Documentation for a quick introduction:
+
+<BLOCKQUOTE>
+<P>&quot;Page flipping is key in 
+      multimedia, animation, and game software. Software page flipping is 
+      analogous to the way animation can be done with a pad of paper. On each 
+      page the artist changes the figure slightly, so that when you flip between 
+      sheets rapidly the drawing appears animated.
+</BLOCKQUOTE>
+
+<P>Page flipping in software is very similar to this process. 
+      Initially, you set up a series of DirectDraw surfaces (i.e. areas of 
+      memory that hold what's supposed to be on screen) that are designed to 
+      &quot;flip&quot; to the screen the way artist's paper flips to the next 
+      page. The first surface is referred to as the primary 
+      surface and the surfaces behind it are called 
+      back buffers. Your application writes 
+      to a back buffer, then flips the primary surface so that the back buffer 
+      appears on screen. While the system is displaying the image, your software 
+      is again writing to a back buffer. The process continues as long as you're 
+      animating, allowing you to animate images quickly and 
+      efficiently.&quot;
+      
+<P>This explains, what it is, but why is it necessary ? Well, a typical 
+      game can have hundreds of graphical objects moving and animating on screen 
+      : monsters, players, walls, text, scores, you name it. Now our game needs 
+      to update these graphical objects as fast as possible, in a clean manner, 
+      changing the position of graphical objects as they move.
+
+<P>Some games keep redraw the whole screen everytime, others keep track of 
+      what has changed on the screen and redraw those parts. We'll take the 
+      first method for our example. So, everytime your game screen is refreshed, 
+      the screen will be cleared so we aren't left with any stuff from the old 
+      frame, and we redraw everything. What will this do ? Flicker.
+
+<P>It could take your game 1/50th of a second (or more) to redraw its 
+      screen; 1/50th is a &quot;long&quot; time, and it's enough for the eye to 
+      notice. Since we are clearing our game screen, the eye will see the image 
+      &quot;being built&quot; and get a flicker of the black (cleared) screen as 
+      it is being filled up with graphics. It's like watching a magician from 
+      behind the stage and seeing all his secrets : it's very interesting if you 
+      want to know how things are done, but it kinda ruins the experience.
+
+<P>So this is where page flipping comes in. Like explained in the DirectX 
+      documentation, when using page flipping, you draw your graphics on an 
+      offscreen, &quot;secret&quot; surface, and when you're done you quickly 
+      &quot;flip&quot; it so it appears on the screen instantly (well, almost, 
+      &quot;instantly&quot; doesn't have the same meaning in computer 
+      graphics!). This way, the eye always sees a clean image, without any 
+      flickering or other visual artifacts.
+      
+<P>But page flipping comes out with its own set of troubles, which are 
+      rooted in the way video cards and monitors work, which is the subject of 
+      the next section.
+
+<H3><FONT COLOR=YELLOW><I>How monitors work</I></FONT></H3>
+
+
+<P>You draw a line and it appears instantly on screen, right ? No. 
+      Monitors are far from being &quot;instantaneous&quot;; a typical monitor 
+      takes 1/75th of a second to &quot;draw&quot; its whole image, which is a 
+      rather large amount of time in the computer world. Some newer (and 
+      expensive) active-matrix flat screen displays could be dubbed 
+      &quot;instantaneous&quot;, but the great majority of monitors aren't flat, 
+      and are called CRT monitors.
+
+<P>Inside your monitor is a vacuum tube, completely void of air. It' 
+      called a cathode-ray tube (or CRT). Those of you with electrical 
+      backgrounds will know that a cathode is the negatively charged 
+      pole in an electrical system; the positive pole is the anode. The 
+      cathode in the monitor is at the back of the monitor, where lies a 
+      &quot;gun&quot; shooting electrons right in your face, which are 
+      thankfully stopped by the glass screen of the monitor. Around thise 
+      cathode gun is a yoke, which, by manipulation its magnetic charge 
+      causes the electrons to be deviated up, down, left or right from the 
+      center of the screen.
+      
+<P>By controlling this magnet in a certain pattern, the electrons can be 
+      caused to &quot;spray&quot; the screen horizontally, going down one line 
+      at a time, which is represented by this picture:
+
+<P align=center><IMG height=386 src="monitorscan.gif" width=427>
+
+<P>The electrons will hit the back of the glass screen, which 
+      is made of rows phosphor, which lights up when hit, The amount of 
+      electrons being fired by the gun can also be controlled, providing 
+      different levels of intensity.
+
+<P>In color monitors, each pixel is represent by a 
+      triplet of phosphor cells, one for red, green and blue. There are 
+      also three electron guns instead of one, each one positioned so it can 
+      only it one of phosphor cells in each triplet; so there's a red, blue and 
+      green gun, the three primary colors that can combined to produce any 
+      color. By varying the output of electrons from each gun and synchronizing 
+      all this with the screen scanning process as depicted above, we can 
+      effectively control the appearance (color) of each pixel on our screen.
+
+<H3><FONT COLOR=YELLOW><I>The Vertical Sync Signal (VSync)</I></FONT></H3>
+
+<P>What does this all have to do with page flipping, and game 
+      programming ? Well, first of all, we've understood that a monitor doesn't 
+      display its image instantly; it takes a certain time for the monitor to 
+      scan all the lines on the screen, and then come back to the top fo the 
+      screen. You can't say &quot;Okay, Big Blue Gun, on my mark, Aim pixel 
+      100,100 and shoot n number of electrons!&quot;. The guns always shoot in 
+      the same pattern, and if the pixel you just changed was just passed by the 
+      guns, then too bad, it'll have to wait for the next pass before it's 
+      updated. The time it takes for the monitor to scan the whole screen is 
+      it's refresh rate, which is typically 75Hz in most monitors.
+
+<P>Maybe some of you will start to see where I'm getting at 
+      with all this, big grins on their faces. If the whole idea behind page 
+      flipping is to present clean images instantaneously to the user, how 
+      can we do so if the monitor device is not instantaneous?
+
+<P>See, if we flip our screen at any time, we will most likely 
+      flip in the middle of the monitor scanning process; that means that our 
+      monitor will most likely scan part of a a frane, then as we flip it'll 
+      scan another image, displaying the top part of the first one, then the 
+      bottom part of the second. The effects of this perhaps won't be as obvious 
+      to the eye as the non-buffered situation we had at first, but our images 
+      certainly won't be clean. For example, suppose that I had an image that 
+      would be moving left in my game, it would so something like this:
+
+<P align=center><IMG height=68 src="title2.jpg" width=460>
+
+<P>The bottom part of the image is shifted left. If the game is 
+      fast enough and it updates its images fast enough the eye may not notice, 
+      but it's certainly not a chance I'd recommend you to take.
+      
+<P>The solution to this is to only flip during the vertical 
+      retrace period of the monitor. The vertical retrace period is the red 
+      line on our first diagram, it is the period when the electrons are going 
+      back to the top of the display; the guns aren't &quot;shooting&quot; 
+      during this interval - they are simply repositioning themselves for the 
+      next pass. When beggining this vertical retrace, the monitor sends a 
+      special signal, called the vertical sync signal, to notify that 
+      it is going back to the top of its image and it is okay to flip now.
+
+<P>So what do need to do to synchronize to this vertical sync 
+      signal ? Well, nothing, videocards often will only flip when the monitor 
+      is in its vertical sync period, so you don't have the choice anyways. When 
+      using DirectX, everything is handled for you; when you ask DirectX to flip 
+      an image, it says &quot;Okay, I'll put this on my agenda&quot;, and flips 
+      whenever the time is right.
+
+<P>Alas, alas, this vertical sync signal brings another bunch 
+      of troubles all its own...
+
+<H3><FONT COLOR=YELLOW><I>The Bad Effects of Buffering</I></FONT></H3>
+
+<P>This whole buffering and synchronizing stuff 
+      also brings up plenty of troubles. The first trouble is relatively obvious 
+      : your game's framerate can never be any higher than the monitor's 
+      framerate. This is not a big problem however, since most monitors output 
+      75 images per second, which is already triple what you get on television. 
+      But it tells us there is an upper limit to teh amount of performance your 
+      game can provide, and no optimization in the world will make your game go 
+      past that limit unless you dump the page flipping.
+
+<P>There is a much more serious problem. To 
+      explain this, let's first look at a simple time graph that shows how the 
+      monitor updates the screen:
+
+<P align=center><IMG height=155 src="vsync.gif" width=424></p>
+
+<P>Now, as I stated earlier, we can only flip the 
+      screen within the VSync interval. Now let's say that our game is fast, and 
+      it can update its screen twice as fast as the monitor. So it makes its 
+      picture, and it asks for the flip. DirectX says &quot;Sure, I'll do it 
+      when it's time&quot;. Good. So our game just goes on and writes its data 
+      to the other available buffer...
+
+<P>Wait. There is no other available buffer. The 
+      primary buffer is currently beig scanned by the monitor, so we can't touch 
+      it, and the back buffer is the one our game has just finished drawing. 
+      What can we do ? Nothing. You wait. Now you could use this idle 
+      time to do something else, like make calculations, update the game's AI, 
+      etc, but there are very few tasks a game could do that can just be picked 
+      up like that, just when there is time to do it. So all you can do is wait. 
+      The next thing you know, your prime-time game capable of running at 75 
+      frames per second is only running at 38, losing half your time. 
+      This is easily illustrated by the next example:
+
+<P align=center><IMG height=223 src="vsync2.gif" width=480></P>
+
+<P>This is a worst-case scenario, with the monitor 
+      running at 75Hz. The blue line tracks where the monitor is scanning from, 
+      and the yellow line tracks where the game is writing to. At first, the 
+      monitor scans from the 1st surface, and the game writes onto the second 
+      surface. In this scenario, the game is just the same speed as the monitor, 
+      i.e. it finishes its drawing right when the monitor is starting a new 
+      scan. Unfortunately, at that point it's already too late : the game should 
+      finish drawing before the monitor's vertical sync (the red 
+      blocks).
+
+<P>In this case, the game issues its flip request 
+      just a split-nanosecond too late, right when the VSync has finished. This 
+      is indicated by the violet arrows. The game (yellow line), should go to 
+      the other surface to continue, but it can't; the monitor's already there 
+      (traffic jam). So it waits in the middle, doing nothing. It's only when 
+      the flip request is processed, when the monitor finally gets off the 1st 
+      surface, that the game can get on it and begin its next drawing, in a 
+      neverending cycle.
+
+<P>In this case, the game has enough &quot;juice&quot; to be 
+      able to output 75 frames per second. But because it is constantly waiting 
+      for the monitor, the best that this game will get is half the monitor's 
+      framerate, or 37.5 frames per second, losing almost half of its 
+      efficiency. In double-buffered schemes, you very often get framerates that 
+      are only simple fractions of the monitor's framerate : 75, or 37.5 which 
+      is 75/2, 25 which is 75/3, 18.75 which is 75/4, and so forth. You can 
+      verify this with the <A href="screenbench.zip">ScreenBench</A> 
+      utility I made.
+
+<P>Performance-wise, this means that you could do vast amounts 
+      of optimization without any effect on your framerate, up until you reach a 
+      certain threshold of optimization where your framerate would climb 
+      significantly - it's like if your game could only shift into certain 
+      predefined speeds.
+      
+<H3><FONT COLOR=YELLOW><I>Enter Triple Buffering</I></FONT></H3>
+
+<P>So what's the solution? Well, the solution is to add a 
+      third &quot;lane&quot;, another buffer, kind of a &quot;backup&quot; that 
+      the game can rely on. DirectX (and Armagammon) handles the details of 
+      setting triple buffering, you can simply specify how many buffers you 
+      want.
+
+<P>This diagram illustrates how triple buffering works:
+
+<P align=center><IMG height=300 src="vsync3.gif" width=480>
+
+<P>I think the graph speaks for itself. With triple buffering, 
+      the game (yellow line), always has some place to go, it's never 
+      &quot;blocked&quot; by the monitor, and it never waits between two lines. 
+      In this case, the game can gain its full speed, and reach the monitor's 
+      framerate (75Hz). Note that even with triple buffering the best framerate 
+      you will be able to get is the monitor's framerate.
+
+<P>The downside of triple buffering is that you have to pay for 
+      the extra video memory you will be using (don't try setting up triple 
+      buffering with one of the three surfaces in system memory, you can only 
+      gain a negative performance hit this way); your extra surface will cost 
+      you around half a meg of video memory in 8-bit graphics mode, a full meg 
+      in 16-bit graphics mode. Some videocards still come equipped with only 2 
+      or 4 megs of video memory, and on these cards triple buffering can only be 
+      setup in the most basic screen resolution modes.
+
+<H3><FONT COLOR=YELLOW><I>Conclusion</I></FONT></H3>
+
+<P>Despite these minor shortcomings, I think it's worth it to 
+      setup triple buffering whenever there's room for it on the videocard; it 
+      will provide you with a much more flexible framerate.</P>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

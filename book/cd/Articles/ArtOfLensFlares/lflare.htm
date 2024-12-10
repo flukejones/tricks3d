@@ -1,0 +1,569 @@
+<HTML>
+<HEAD>
+	<TITLE>The Art of Modeling Lens Flares, by Michael Tanczos</TITLE>
+</HEAD>
+
+<BODY bgcolor="#FFFFFF">
+
+<center>
+<table border="0" cellspacing="0" width="90%">
+<tr><td>
+
+<font face="arial">
+
+<center><h2><font color="#BBBBBB">The Art of Modeling Lens Flares</font></h2></center>
+<br>
+Version: 1.0<br>
+Date: February 20, 1999<br>
+Copyright (C) 1999 by Michael Tanczos<br><br>
+
+<font size="+1"><u>Introduction</u></font><br><br>
+
+A few authors recently have discussed methods of alpha blending. For those of you who are clueless as to what alpha blending
+is, I'd suggest reading some of the other alpha blending tutorials on gamedev.net for a more extensive overview. This will be a
+tough article to work through, and will require a lot of effort on your part to learn everything involved with creating beautiful
+flares, but the results will be well worth the effort.<br><br><br>
+
+<font size="+1"><u>Alpha Blending</u></font><br><br>
+
+The basic break-down of the effect is to split up two colors, source1 and source2, into their
+RGB components. You then take percentages of each color component (usually on a 0..255 scale), and add them up to create
+a destination color component :<br><br>
+
+Figure 1.<br>
+<center>
+<table border="0" cellspacing="0" cellpadding="10" bgcolor="#EEEEEE">
+<tr><td>
+<font face="courier" size="-1">
+<br>
+Dest_r = ((source1_r * alpha) + (source2_r * (255-alpha))/255<br>
+Dest_g = ((source1_g * alpha) + (source2_g * (255-alpha))/255<br>
+Dest_b = ((source1_b * alpha) + (source2_b * (255-alpha))/255<br>
+<br>
+</font>
+</td></tr>
+</table>
+</center>
+
+<br>
+When done correctly, you can overlay one semi-translucent image over another image.
+The next section will assume that you already have at least attempted to perform alpha blending.  
+<br><br><br>
+
+<font size="+1"><u>Alpha Blending Speed-ups</u></font><br><br>
+
+Now if one were to attempt to perform fast alpha blending, you may find that the
+equations in Figure 1 are not too efficient.  Some common speed-ups involve storing
+the inverse alpha value into a new variable so that it doesn't have to be recalculated
+each time,  ie :<br><br><br>
+
+Figure 2.<br>
+<center>
+<table border="0" cellspacing="0" cellpadding="10" bgcolor="#EEEEEE">
+<tr><td>
+<font face="courier" size="-1">
+<br>
+int inverse_alpha = 255 - alpha;<br><br>
+
+Dest_r = ((source1_r * alpha) + (source2_r * inverse_alpha))/255<br>
+Dest_g = ((source1_g * alpha) + (source2_g * inverse_alpha))/255<br>
+Dest_b = ((source1_b * alpha) + (source2_b * inverse_alpha))/255<br>
+<br>
+</font>
+</td></tr>
+</table>
+</center>
+<br><br>
+
+Well, this gets rid of at least two subtractions. Still not good enough.. we may
+not even find a fast enough implementation of alpha blending in this article, but
+we definitely can beat Figure 1.  On to new optimizations..<br><br>
+
+Examining Figure 2, we can clearly see that the biggest drawbacks in speed lie in
+the fact that 6 multiplications and 3 divides are performed.  But one thing that
+really jumps out is the value 255.  We won't assume that the compiler optimizes
+this code in any form and replace the three divides by bit shift operations.
+<br><br><br>
+
+Figure 3.<br>
+<center>
+<table border="0" cellspacing="0" cellpadding="10" bgcolor="#EEEEEE">
+<tr><td>
+<font face="courier" size="-1">
+<br>
+int inverse_alpha = 255 - alpha;<br><br>
+
+Dest_r = ((source1_r * alpha) + (source2_r * inverse_alpha)) >> 8 <br>
+Dest_g = ((source1_g * alpha) + (source2_g * inverse_alpha)) >> 8<br>
+Dest_b = ((source1_b * alpha) + (source2_b * inverse_alpha)) >> 8<br>
+<br>
+</font>
+</td></tr>
+</table>
+</center>
+<br><br>
+
+Ahh, so we've reduced those divides into simple instructions which will execute
+quite fast.  But those 6 muls still jump straight out at us.<br><br>
+
+Here is where things get interesting. We can eliminate at least three
+multiplications and one subtract instruction by storing our bitmap differently.
+The rest of these optimizations will apply only to those who don't need to
+constantly modify their alpha values.<br><br>
+
+Lets check out some sample data:<br><br><br>
+
+Figure 3.<br>
+<center>
+<img src="alphamap.jpg" width=533 height=273 border=0 alt="Alpha Data">
+</center>
+<br><br>
+
+
+The color data is simply a composite of the red, green, and blue channels.  You can see 
+what those channels would look like in the lower left corner of Figure 4.  I've added the 
+coloring so it is easier to distinguish between the three channels, but normally they 
+appear in grayscale format.  The alpha data represents the level of translucency that the 
+corresponding pixel in the color data should maintain when blitted onto another color 
+surface.
+<br><br>
+Okay, so here is what we can do.  We can use the same amount of space as before with 
+minimal-to-no loss in quality.  Simply pre-divide each pixel in the color data by it's 
+corresponding alpha component FIRST.  
+<br><br>
+Figure 5 illustrates how this can be done.
+<br><br>
+
+Figure 5.<br>
+<center>
+<table border="0" cellspacing="0" cellpadding="10" bgcolor="#EEEEEE">
+<tr><td>
+<font face="courier" size="-1">
+<br>
+/*<br><br>
+
+In mathematics, you learn something known as an distributive property of real numbers.  We can illustrate that property as :<br><br>
+
+(A + B) C = AC + BC<br><br>
+
+Where A, B, and C are real numbers.<br><br>
+
+Now lets see what that looks like in code by expanding the source 
+below :<br><br>
+
+*/<br><br>
+
+int inverse_alpha = 255 - alpha;<br><br>
+
+Dest_r = (source1_r * alpha)/255 + (source2_r * inverse_alpha)/255<br>
+Dest_g = (source1_g * alpha)/255 + (source2_g * inverse_alpha)/255<br>
+Dest_b = (source1_b * alpha)/255 + (source2_b * inverse_alpha)/255<br>
+<br>
+</font>
+</td></tr>
+</table>
+</center>
+<br><br>
+
+
+As you can see, Figure 5 is virtually identical to Figure 1.  We simply store the values 
+<b>(source1_r * alpha)/255</b>, <b>(source1_g * alpha) / 255</b>, and <b>(source2_b * alpha) / 255</b> in 
+our original bitmap format.<br><br>
+
+Also, our original bitmap format will include some sort of alpha channel.  As you can see 
+in the previous code samples, we are only using it in the line : <br><br>
+
+<b>     int inverse_alpha = 255 - alpha;</b><br><br>
+
+Well, we can simply replace every value in the alpha map by the inverse alpha.  Thereby 
+eliminating the need to calculate the value for the inverse alpha.  <br><br><br>
+
+
+The equation then gets reduced to :<br><br><br>
+
+Figure 6.<br>
+<center>
+<table border="0" cellspacing="0" cellpadding="10" bgcolor="#EEEEEE">
+<tr><td>
+<font face="courier" size="-1">
+<br>
+// Remember that alpha now contains the inverse value (255-alpha)<br><br>
+
+Dest_r = source1_r + (source2_r * alpha) >> 8 <br>
+Dest_g = source1_g + (source2_g * alpha) >> 8 <br>
+Dest_b = source1_b + (source2_b * alpha) >> 8 <br>
+<br>
+</font>
+</td></tr>
+</table>
+</center>
+<br><br>
+
+Are we done yet?  For all intensive purposes, yes.  I have additional methods of
+optimization that I haven't tested yet, so I'd prefer not to introduce them at this
+point in time. Don't forget that you may additionally examine the assembly output
+of your alpha blending routine, and optimize it by hand.
+<br><br><br>
+
+<font size="+1"><u>Lens Flare Translucency</u></font><br><br>
+
+Well, I just explained to you everything you'll need to know about alpha blending.  Now 
+put that aside, because for lens flares we will utilize additive blending.  Blending in this 
+manner is what causes flares to appear purely white over bright surfaces.  
+<br><br>
+Additive blending is done in unoptimized form as follows :
+<br><br><br>
+
+Figure 7.<br>
+<center>
+<table border="0" cellspacing="0" cellpadding="10" bgcolor="#EEEEEE" width="400">
+<tr><td>
+<font face="courier" size="-1">
+<br>
+Dest_r = source1_r + source2_r <br>
+Dest_g = source1_g + source2_g<br>
+Dest_b = source1_b + source2_b<br><br>
+
+if (Dest_r > 255) Dest_r = 255;<br>
+if (Dest_g > 255) Dest_g = 255;<br>
+if (Dest_b > 255) Dest_b = 255;<br>
+<br>
+</font>
+</td></tr>
+</table>
+</center>
+<br><br><br>
+
+
+There is an assumption made in the above equation that may cause problems if you try to 
+implement this directly.<br><br>
+
+We assume that Dest_r, Dest_g, and Dest_b are capable of handling numbers greater than 
+255.  One solution could be to leave those values as short 16-bit integers.  Though, there 
+may be a better brute-force solution which will allow us to use 8-bit integers and get rid 
+of those nasty "if" statements.<br><br>
+
+Create a (<b>256+256</b>) byte look-up table as follows : <br><br><br>
+
+Figure 8.<br>
+<center>
+<table border="0" cellspacing="0" cellpadding="10" bgcolor="#EEEEEE" width="400">
+<tr><td>
+<font face="courier" size="-1">
+
+<br>
+unsigned char alut [512];<br><br>
+
+for (int i = 0; i &lt; 512; i++)<br>
+{<br>
+  &nbsp;&nbsp;alut [i] = i;<br>
+  &nbsp;&nbsp;if (i &gt; 255) alut [i] = 255;<br>
+}<br>
+<br>
+
+</font>
+</td></tr>
+</table>
+</center>
+<br><br><br>
+
+
+Here is how the table looks :<br><br>
+<b>
+alut [0] = 0;<br>
+alut [1] = 1;<br>
+alut [2] = 2;<br>
+...<br>
+alut [255] = 255;<br>
+alut [256] = 255;<br>
+...<br>
+alut [511] = 255;<br>
+</b><br><br>
+
+Our additive blending equation then is rewritten as follows :<br><br><br>
+
+Figure 9.<br>
+<center>
+<table border="0" cellspacing="0" cellpadding="10" bgcolor="#EEEEEE" width="400">
+<tr><td>
+<font face="courier" size="-1">
+
+<br>
+Dest_r = alut [source1_r + source2_r];<br>
+Dest_g = alut [source1_g + source2_g];<br>
+Dest_b = alut [source1_b + source2_b];<br>
+<br>
+
+</font>
+</td></tr>
+</table>
+</center>
+<br><br><br>
+
+If anybody finds a more reduced implentation of additive blending, please let me know.
+<br><br>
+I have left out some rather vital information for putting the destination pixel back 
+together, but this can be commonly found in most alpha blending tutorials for various 
+pixel formats.<br><br><br>
+
+
+<font size="+1"><u>Parts of a Flare</u></font><br><br>
+
+1.  <b>Main Flare</b> - The main flare is the most prominent portion of a lens flare.  It is what 
+should typically come to mind when you think of lens flares.  See below for several 
+examples<br><br><br>
+
+<center><img src="mainfl.jpg" width=355 height=232 border=0 alt="Main Flares"></center>
+
+<br><br><br>
+
+
+The main flare can be broken down into four distinct parts :<br><br>
+
+<table border="1" cellspacing="1" cellpadding="10">
+<tr>
+<td><b>Description</b></td><td><b>What it looks like</b></td><td><b>How it can be done manually</b></td>
+</tr>
+
+<tr>
+<td><b>Glow</b></td>
+<td bgcolor="#000000"><center><img src="part_glow.jpg" width=100 height=100 border=0 alt=""></center></td>
+<td>
+The glow portion of the main flare is simply a gradient from a bright color to a darker color.  Use the following code to calculate a good intensity falloff for the glow if you plan on doing it by "hand":
+For (int i = 0; i &lt; max_radius; i++) {<br>
+ Intensity = exp(-i*i*0.006)*0.50 + exp(-i*0.03)*(1-0.50);<br>
+}<br><br>
+</td>
+</tr>
+
+<tr>
+<td><b>Ring</b></td>
+<td bgcolor="#000000"><center><img src="part_ring.jpg" width=100 height=100 border=0 alt=""></center></td>
+<td>
+The ring is simply an antialiased circle of some dark color.  Here is where you can get creative by using gradients of color for the ring.  See the above examples of main flares for some rings illustrating this concept.  The variable portion of this ring is it's radius and color
+</td>
+</tr>
+
+<tr>
+<td><b>Streaks</b></td>
+<td bgcolor="#000000"><center><img src="part_streak.jpg" width=100 height=100 border=0 alt=""></center></td>
+<td>
+Not the best example of a streak, but it is basically the primary 
+"streak" of light that radiates out from the center of the flare.  Note 
+that all streaks are evenly spaced out.  So, for example, 4 streaks are 
+spread apart at angles of 90 degrees.  Bright white colors usually 
+work best.
+
+</td>
+</tr>
+
+<tr>
+<td><b>Rays</b></td>
+<td bgcolor="#000000"><center><img src="part_rays.jpg" width=100 height=100 border=0 alt=""></center></td>
+<td>
+The rays are also antialiased.  They are simply lines of random length that radiate out from the center of the flare.
+</td>
+</tr>
+
+<tr>
+<td><b>Composite</b></td>
+<td bgcolor="#000000"><center><img src="part_total.jpg" width=100 height=100 border=0 alt=""></center></td>
+<td>
+Just a crude flare I made with a composite of the quickly (and I do
+mean quickly) drawn flare illustrations in the columns above.  Not 
+bad.  But what is important is that you can see how the components 
+interact with each other.  Note that additive blending is used to 
+combine the components.
+
+</td>
+</tr>
+
+</table>
+<br><br><br>
+
+
+2.  <b>Secondary Parts</b><br><br>
+
+The rest of the flare varies widely between flares.  These parts usually appear as small, very translucent, circles.  
+<br><br><br>
+
+<center><img src="secfl.jpg" width=280 height=215 border=0 alt="Secondary Flares"></center>
+<br><br><br>
+
+Here, we don't really see too much variation in relation to how the circles are created.  
+The diagram below gives you a basic insight as to how they are created.  Generally, you 
+create a ring of any color, and smoothly transition to another color using smaller and 
+smaller rings until your final ring has a radius of 0.  Note that you'll need to utilize a blur 
+filter to make it look the most correct.
+<br><br>
+
+Figure 11.<br>
+<center><img src="secdemo.jpg" width=262 height=115 border=0 alt="Sec. Demonstration"></center>
+<br><br><br>
+
+The optimal way to create the secondary rings is to create a function which takes at least 
+a radius, an outer ring color, and an inner ring color.   You then interpolate the R, G, B 
+values starting from the outer ring color and continuing until you reach the final inner 
+ring color.   Looking at figure 11, we could say that the outer ring's color is some shade 
+of purple, while the inner ring color is pure black.
+<br><br><br>
+
+
+<font size="+1"><u>Breaking the Screen Down : Cartesian Coordinates</u></font><br><br>
+
+
+In order to easily draw lens flares, we'll need to take notice of a property that they all  share.
+<br><br>
+Examine the flare below, and see if you can determine a trend in the positions of the primary flare in relation to the secondary parts of the flare.
+<br><br><br>
+
+<center>
+<table border="1" cellspacing="1" cellpadding="0">
+<tr>
+<td><img src="flare1.jpg" width=200 height=200 border=0 alt=""></td>
+<td><img src="flare2.jpg" width=200 height=200 border=0 alt=""></td>
+<td><img src="flare3.jpg" width=200 height=200 border=0 alt=""></td>
+</tr>
+</table>
+</center>
+<br><br><br>
+
+If you haven't noticed yet, all parts of the flare pivot around the center of the image.  So 
+as such, we will utilize a coordinate system that is conducive to this sort of pivoting.  The 
+cartesian coordinate system, as demonstrated in figure 10, is perfect for the creation of 
+lens flares because all points are centered around the middle of the graph.  
+<br><br><br>
+
+Figure 10.
+<center><img src="graph.gif" width=253 height=253 border=0 alt=""></center>
+<br><br><br>
+
+
+In order to utilize a cartesian coordinate system on-screen, we simply set our origin to 
+(X = SCREEN_WIDTH / 2, Y = SCREEN_HEIGHT / 2).  We then plot all points on screen in cartesian coordinates, with the x-extents being +/-(SCREEN_WIDTH / 2) and the y-extents being +/-(SCREEN_HEIGHT / 2).
+<br><br>
+Converting back to screen coordinates is also easy.  We simply add our (X, Y) values for the origin to each (X, Y) pair in cartesian coordinates.
+<br><br>
+
+<font size="+1"><u>The lens Flare Vector</u></font><br><br>
+
+The lens flare we create will have parts that all lie on a straight line.  The method that I 
+like to utilize when positioning parts of the lens flare is to set position coordinates only 
+for the <b><i>main</i></b> flare using a standard (h, k) center, plotted in cartesian coordinates.  <b><i>All </i></b>
+other secondary portions are inverted and/or scaled (h, k) coordinates.  While you may 
+use a 2d vector, or a 3d vector if you want the flare to have capabilities of being hidden 
+by geometry (such as a sun behind a star), I find this to be the easiest.
+<br><br><br>
+
+Figure 11.
+<center><img src="flarevect.gif" width=200 height=200 border=0 alt=""></center>
+<br><br><br>
+
+Remember, (h, k) are simply points in the cartesian coordinate system you set up.  They 
+more specifically represent the CENTER of the main flare.  The other coordinates are 
+simply scaled and/or inverted h, k coordinates.  Note that you can pick out virtually any 
+number to scale the coordinates, and invert any coordinate set as you wish.  
+<br><br>
+What happens when you invert the h, k coordinates is that if your main flare is in the top 
+right corner, the new coordinates would be in the bottom left corner of the screen.
+<br><br>
+
+<center>
+<table border="1" cellspacing="0" cellpadding="5" width="60%">
+<tr>
+<td>Main Flare</td>
+<td>h</td>
+<td>k</td>
+</tr>
+
+<tr>
+<td>Secondary Flare</td>
+<td>-h</td>
+<td>-k</td>
+</tr>
+
+<tr>
+<td>Secondary Flare</td>
+<td>-h / 2</td>
+<td>-k / 2</td>
+</tr>
+
+<tr>
+<td>Secondary Flare</td>
+<td>-h / 1.2</td>
+<td>-k / 1.2</td>
+</tr>
+
+<tr>
+<td>Secondary Flare</td>
+<td>h / 3.2</td>
+<td>k / 3.2</td>
+</tr>
+
+</table>
+</center>
+<br><br><br>
+
+Converting the (h, k) coordinates to screen coordinates is exactly as stated before.  You 
+simply add :
+<br><br>
+Screen_coord_x = h + SCREEN_W / 2;<br>
+Screen_coord_y = k + SCREEN_H / 2;<br>
+<br>
+Where SCREEN_W is the screen width and SCREEN_H is the screen height.<br><br>
+
+When blitting the flare portions to the screen using additive blending, don't forget to blit 
+with the new screen coordinates being in the absolute center of the 
+sprite, rather than the top right corner like most blitting functions work.
+<br><br><br>
+
+
+<font size="+1"><u>Using Graphics Programs to Create Flares</u></font><br><br>
+
+
+Well, we just spent a considerable amount of time talking about how you can graphically 
+generate your very own lens flares.  Well, it may not be very practical for most 
+programmers to spend the time writing routines to generate lens flares.  So what you 
+need to do is grab a good graphics program like Photoshop and create your own using 
+filters!  <br><br>
+
+Simply render them to a black background and use a crop tool to pick out only the parts 
+you want.<br><br>
+
+But, for those of you who can't afford an expensive graphics program like photoshop, I've 
+taken the liberty of creating a few flares for you.<br><br>
+
+Just click on the flare you like.  They are stored in 32-bit TARGA files.<br><br>
+<center>
+<table border="1" cellspacing="0" cellpadding="0">
+<tr>
+<td><a href="flpak1.zip"><img src="flpak1.jpg" width=128 height=128 border=0 alt=""></a></td>
+<td><a href="flpak2.zip"><img src="flpak2.jpg" width=128 height=128 border=0 alt=""></a></td>
+</tr>
+
+<tr>
+<td><a href="flpak3.zip"><img src="flpak3.jpg" width=128 height=128 border=0 alt=""></a></td>
+<td><a href="flpak4.zip"><img src="flpak4.jpg" width=128 height=128 border=0 alt=""></a></td>
+</tr>
+</table>
+</center>
+
+<br><br>
+
+<h3>Good Luck!</h3>
+
+<font size="-1">
+<i>(C) Copyright 1999, Michael Tanczos.  This document may be freely reproduced only
+ if the name "Michael Tanczos", the URL to "http://www.gamedev.net", and this copyright
+notice remain intact.</i>
+</font>
+
+</font>
+
+</td></tr>
+</table>
+
+</center>
+
+</BODY>
+</HTML>

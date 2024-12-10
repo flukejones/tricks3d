@@ -1,0 +1,566 @@
+<!--Header-->
+<HTML>
+<HEAD>
+<TITLE>GPMega - DirectX Section - DirectDraw Fading Mania</TITLE>
+<META NAME="DESCRIPTION" CONTENT="The only tutorial you'll need to have awesome 16-bit fades with DirectDraw.  Covers crossfading, fade to a surface, and fading to black.  Covers theory, technique and gives implementation code.  Includes complete demo with source code in C++.">
+</HEAD>
+<BODY BGCOLOR=#000000 TEXT=#FFFFFF LINK=#00FF00 VLINK=#00FF00 ALINK=#0000FF>
+<!--End Header-->
+<!--Advertiser-->
+<CENTER>
+<TABLE>
+<TR>
+<TD>
+<A HREF="http://www.ugo.com/">
+<IMG SRC="/GPMega/ugologo120.gif" BORDER=0 WIDTH=120 HEIGHT=60></A>
+</TD>
+<TD>
+<IMG SRC="/GPMega/sponsored.gif" WIDTH=468 HEIGHT=10><br><br>
+<SCRIPT LANGUAGE= "JavaScript">
+<!--
+var now = new Date();
+var random_num = now.getSeconds();
+document.write("<A HREF='http://www.ugo.net/RealMedia/ads/click_nx.cgi/www.perplexed.com/GPMega/directx/ddfade.htm/" + random_num + "/@Top'>");
+document.write("<IMG SRC='http://www.ugo.net/RealMedia/ads/adstream_nx.cgi/www.perplexed.com/GPMega/directx/ddfade.htm/" + random_num + "/@Top' BORDER='0' WIDTH='468' HEIGHT='60'></A>");
+//-->
+</SCRIPT>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+<!--End Advertiser-->
+<!--Splitter-->
+<BR>
+<!--End Splitter-->
+<!--Body-->
+<FONT SIZE=2 FACE=Helvetica>
+<STRONG>
+<!--Top Navigation-->
+<A NAME="top"></A>
+<CENTER>
+<TABLE WIDTH=75%>
+   <TR VALIGN=MIDDLE>
+   <TD ALIGN=LEFT>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1><BR><BR>
+      <A HREF="http://www.perplexed.com/GPMega/"><IMG SRC="logo.jpg" BORDER=0 ALT="Home" WIDTH=80 HEIGHT=47 ALIGN=CENTER></A>
+      <FONT COLOR=#666666 FACE=HELVETICA SIZE=-1><I>
+      This Article Is Taken From <A HREF="http://www.perplexed.com/GPMega/">The Game Programming MegaSite</A>, A Definitive Resource For Game Developers!
+      </I></FONT><BR>
+      <IMG SRC="gradsplit2.jpg" WIDTH=100% HEIGHT=1>
+   </TD>
+   </TR>
+</TABLE>
+</CENTER>
+<BR><!--End Top Navigation-->
+<!--Title-->
+<H3 ALIGN=CENTER><font color="#FFF400">D</font><font color="#FFE900">i</font><font color="#FFDE00">r</font><font color="#FFD300">e</font><font color="#FFC800">c</font><font color="#FFBD00">t</font><font color="#FFB200">D</font><font color="#FFA700">r</font><font color="#FF9C00">a</font><font color="#FF9100">w</font><font color="#FF8600"> </font><font color="#FF7B00">F</font><font color="#FF7000">a</font><font color="#FF6500">d</font><font color="#FF5A00">i</font><font color="#FF4F00">n</font><font color="#FF4400">g</font><font color="#FF3900"> </font><font color="#FF2E00">M</font><font color="#FF2300">a</font><font color="#FF1800">n</font><font color="#FF0D00">i</font><font color="#FF0200">a</font><BR><FONT SIZE=-2>By: Matt Reiferson</FONT></H3>
+<!--End Title-->
+
+<P>Fades are an excellent way to cut to and from sections of your game.  Fade into your intro screen, fade out after the player dies, 
+and cross-fade from screen-to-screen.  Well, how do you do it?  I'm going to cover fades in DirectDraw 16-bit modes, this seems 
+to be the most commonly used mode, and in subsequently is the most commonly asked mode to do fades in.
+
+<P>NOTE:  This article assumes you have a decent knowledge of DirectDraw, such as setting modes, creating surfaces, locking/unlocking, etc.
+
+<H3><FONT COLOR=YELLOW><I>16-bit Pixel Formats</I></FONT></H3>
+
+<P>Answer me this quick question, can you evenly divide 3 into 16?  I hope you said no.  My point is that in order to describe 
+a single pixel, you need three components, <i>red</i>, <i>green</i>, and <i>blue</i>.  In other words if your in a 16-bit 
+mode each pixel is given 16 bits for it's RGB combo and since you can't evenly divide 3 (R,G,B) into 16 bits, your video card 
+determines how it's going to split things up.  Video cards put in 16-bit modes come in two flavors, the 5,6,5 format or the 
+5,5,5 format (# of bits for r,g,b respectively).  How does this affect fading?  Well we're going to need the red, green, and 
+blue components of the pixels were going to be manipulating.
+
+<P>After that background info on these two 16-bit pixel formats, the next obvious step is to throw some code at you that 
+demonstrates one technique of determining what the users video card format is in.  The function is called <i>DDGetRGB16()</i> 
+and i'll throw that in below but first, the function fills up a structure called <i>RGB16</i> which holds information about 
+pixel masks and bit positions.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	// the structure which holds pixel RGB masks
+	typedef struct _RGBMASK
+	{
+		unsigned long rgbRed; // red component
+		unsigned long rgbGreen; // green component
+		unsigned long rgbBlue; // blue component
+	} RGBMASK;
+
+	// the structure which holds screen format info (5,6,5 or 5,5,5 and masking)
+	typedef struct _RGB16
+	{
+		RGBQUAD depth;
+		RGBQUAD amount;
+		RGBQUAD position;
+		RGBMASK mask;
+	} RGB16;
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Then of course, we're also going to need a couple globals.  One being the RGB16 structure, and the integers being a couple 
+of convienence variables so we don't constantly type out the entire structure.  In case your wondering, the <i>'m'</i> 
+or <i>'p'</i> preceding the variables below stand for <i>mask</i> and <i>position</i> variables respectively.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	RGB16	rgb16;			// Video Card RGB Information Structure
+	int	mRed, mGreen,		// Faster values of above structure
+		mBlue, pRed,		// Faster values of above structure
+		pGreen, pBlue;		// Faster values of above structure
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Ok, now we're ready to go ahead and see that <i>DDGetRGB16()</i> function.  What it does is simply manipulate information 
+returned from a query to <i>->GetSurfaceDesc()</i> on the primary surface.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	/*
+	 * DDGetRGB16:
+	 *    Must run this function to fill the RGB16 struct with the information needed to plot a pixel
+	 *		To call this, you must have rgb16 defined as a global (unless you want to modify this) variable
+	 *		RGB16 rgb16;
+	 */
+	void DDGetRGB16(void)
+	{
+		DDSURFACEDESC   ddsd;       // DirectDraw Surface Description
+		BYTE            shiftcount; // Shift Counter
+	
+		// get a surface despriction
+		ddsd.dwSize = sizeof(ddsd);
+		ddsd.dwFlags = DDSD_PIXELFORMAT;
+		lpDDSPrimary->GetSurfaceDesc(&ddsd);
+
+		// Fill in the masking values for extracting colors
+		rgb16.mask.rgbRed = ddsd.ddpfPixelFormat.dwRBitMask;
+		rgb16.mask.rgbGreen = ddsd.ddpfPixelFormat.dwGBitMask;
+		rgb16.mask.rgbBlue = ddsd.ddpfPixelFormat.dwBBitMask;
+		
+		// get red surface information
+		shiftcount = 0;    
+		while(!(ddsd.ddpfPixelFormat.dwRBitMask & 1))
+		{
+			ddsd.ddpfPixelFormat.dwRBitMask >>= 1;
+			shiftcount++;
+		}
+		rgb16.depth.rgbRed = (BYTE)ddsd.ddpfPixelFormat.dwRBitMask;
+		rgb16.position.rgbRed = shiftcount;
+		rgb16.amount.rgbRed = (ddsd.ddpfPixelFormat.dwRBitMask == 0x1f) ? 3 : 2;
+	
+		// get green surface information
+		shiftcount = 0;
+		while(!(ddsd.ddpfPixelFormat.dwGBitMask & 1))
+		{
+			ddsd.ddpfPixelFormat.dwGBitMask >>= 1;
+			shiftcount++;
+		}
+		rgb16.depth.rgbGreen =(BYTE)ddsd.ddpfPixelFormat.dwGBitMask;
+		rgb16.position.rgbGreen = shiftcount;
+		rgb16.amount.rgbGreen = (ddsd.ddpfPixelFormat.dwGBitMask == 0x1f) ? 3 : 2;
+	
+		// get Blue surface information
+		shiftcount = 0;
+		while(!(ddsd.ddpfPixelFormat.dwBBitMask & 1)) 
+		{
+		ddsd.ddpfPixelFormat.dwBBitMask >>= 1;
+		shiftcount++; 
+		}
+		rgb16.depth.rgbBlue =(BYTE)ddsd.ddpfPixelFormat.dwBBitMask;
+		rgb16.position.rgbBlue = shiftcount;
+		rgb16.amount.rgbBlue = (ddsd.ddpfPixelFormat.dwBBitMask == 0x1f) ? 3 : 2;
+
+		// fill in variables so we dont' have to access the structure anymore
+		mRed = rgb16.mask.rgbRed;         // Red Mask
+		mGreen = rgb16.mask.rgbGreen;     // Green Mask
+		mBlue = rgb16.mask.rgbBlue;       // Blue Mask
+		pRed = rgb16.position.rgbRed;     // Red Position
+		pGreen = rgb16.position.rgbGreen; // Green Position
+		pBlue = rgb16.position.rgbBlue;   // Blue Position
+	}
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<H3><FONT COLOR=YELLOW><I>Fading Technique</I></FONT></H3>
+
+<P>Since the implementation of fading that we use at the end involves manipulating each pixel, how do we go about blending one 
+pixel into another?  Well, let first establish an equation which will allow us to blend two pixel's color values for one of their RGB 
+components.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	// get pixels red,green,blue values
+	red_final		= (red1 * transparency1) + (red2 * transparency2);
+	blue_final	= (blue1 * transparency1) + (blue2 * transparency2);
+	green_final	= (green1 * transparency1) + (green2 * transparency2);
+	// recombine red,green,blue to pixel value
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Great, so Matt, how do we get the pixels red,green,blue values and then how to we create a pixel value from those new red,green,blue 
+values we've calculated?  Glad you asked, here's where we put into use that information we've obtained from our <i>DDGetRGB16()</i> 
+function.
+
+<P>What follows are four macros which do exactly what they say, find out that information we need...
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	#define RED(p)		(p >> pRed)			// Extracts Red Component
+	#define GREEN(p)		((p & mGreen) >> pGreen)		// Extracts Green Component
+	#define BLUE(p)		(p & mBlue)			// Extracts Blue Component
+	#define RGB16(r, g, b)	((r &lt;&lt; pRed) | (g &lt;&lt; pGreen) | b)	// Creates RGB Pixel Value
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>If you didn't know already, we also want this cross-fade to occur fast, so I took the liberty of making an important 
+but commonly used optimization, a lookup table.  I made the decision that for any given fade, 32 steps would be enough to 
+create a smooth enough effect.  So the lookup table is simply a huge array of all the shades of any given color in 32 steps.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	WORD PixelShade[32][65536];
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>In our <i>PixelShade</i> initialization function, we're going to precompute the values for a given pixel in the given shade 
+level, 0-31.  The function should be self explanatory, the only interesting note is the use of our above macros, and the use 
+of a constant array of the decimal percentage values for each shade level.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	/*
+	 * InitPixelShade:
+	 *    Fills the PixelShade array with precomputed shades of every possible pixel (32 shades)
+	 */
+	void InitPixelShade(void)
+	{
+		int i, j;
+		int r,g,b;
+		int dr,dg,db;
+		const double alpha[32] = { 0.0, 0.03, 0.06, 0.09,
+					0.13, 0.17, 0.21, 0.24,
+					0.27, 0.31, 0.34, 0.37,
+					0.41, 0.44, 0.47, 0.49,
+					0.51, 0.53, 0.56, 0.59,
+					0.63, 0.66, 0.69, 0.73,
+					0.76, 0.79, 0.83, 0.87,
+					0.91, 0.94, 0.97, 1.0 };
+
+		for(i=0;i&lt;32;i++)
+		{
+			for(j=0;j&lt;65536;j++)
+			{
+				r = RED(j);
+				g = GREEN(j);
+				b = BLUE(j);
+				dr = (int)(r*alpha[i]);
+				dg = (int)(g*alpha[i]);
+				db = (int)(b*alpha[i]);
+				PixelShade[i][j] = RGB16(dr,dg,db);
+			}
+		}
+	}
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>The first type of fade we'll implement is cross-fading, which is the basic fade directly from one image on screen to another.  
+What your basically trying to do is combine the two desired images through blending.  Where during each iteration the initial 
+image becomes more transparent and the final image becomes more opaque (although, transparency_initial_img + transparency_final_img = 100%).
+
+<P>What the next function presented does is perform a cross-fade (Alpha Transition) on the two given surfaces.
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	/*
+	 * AlphaTransition:
+	 *    Does an alpha transition from Src -> Des
+	 */
+	void AlphaTransition(LPDIRECTDRAWSURFACE Src, LPDIRECTDRAWSURFACE Des)
+	{	
+		long i;							 // index into surfaces
+		int alpha;                  // Holds current alpha value
+		int dpitch, spitch, tpitch, ppitch; // surface pitch for destination, source, temp surfaces
+		WORD *AlphaPTR;              // pointer to the current AlphaMap level (Source)
+		WORD *InvAlphaPTR;           // the inverted pointer to the current AlphaMap level (Destination)
+		WORD *src, *des, *tmp, *prm;
+		WORD *fastsrc, *fastdes, *fasttmp;      // Surface memory pointer for source, destination, and temporary surfaces
+		RECT SrcRect, DesRect;      // Source and destination rectangles
+
+		// Set source and destination rectangles to the screen size
+		SetRect(&SrcRect, 0, 0, 640, 480);
+		SetRect(&DesRect, 0, 0, 640, 480);
+
+		// Create the three surface we are going to use
+		lpDDSTmp = DDCreateSurface(640, 480, DDSCAPS_SYSTEMMEMORY); // The temporary surface
+		lpDDSSrc = DDCreateSurface(640, 480, DDSCAPS_SYSTEMMEMORY); // The source surface
+		lpDDSDes = DDCreateSurface(640, 480, DDSCAPS_SYSTEMMEMORY); // The destination surface
+
+		// Blit the transition surfaces into out newly created source/destination surfaces
+		lpDDSSrc->Blt(&DesRect, Src, &SrcRect, DDBLT_WAIT, NULL); // Blit Src->lpDDSSrc
+		lpDDSDes->Blt(&DesRect, Des, &SrcRect, DDBLT_WAIT, NULL); // Blit Des->lpDDSDes
+
+		// lock all three surfaces temporary, source, and destination
+		des = DDLockSurface(lpDDSDes, &dpitch);
+		src = DDLockSurface(lpDDSSrc, &spitch);
+		tmp = DDLockSurface(lpDDSTmp, &tpitch);
+		prm = DDLockSurface(lpDDSPrimary, &ppitch);
+
+		// for each alpha level
+		for(alpha=31;alpha>=0;alpha--)
+		{
+			// set AlphaMap pointers to appropriate levels
+			AlphaPTR = PixelShade[alpha];
+			InvAlphaPTR = PixelShade[31-alpha];
+
+			// "reset" the *fast* pointers to the locked surfaces
+			fastsrc = src;
+			fastdes = des;
+			fasttmp = tmp;
+
+			// loop through every pixel
+			for(i=0;i&lt;307200;i++,fasttmp++,fastsrc++,fastdes++)
+			{
+				// Set the new pixel value in temporary surface
+				*fasttmp = AlphaPTR[*fastsrc] + InvAlphaPTR[*fastdes];
+			}
+			
+			// copy the temp surface to the primary surface
+			// (640*480) = 307200 (words) * 2 = 614400 (bytes)
+			memcpy(prm, tmp, 614400);
+		}
+		
+		// Unlock our temporary, source, and destination surfaces
+		DDUnlockSurface(lpDDSPrimary);
+		DDUnlockSurface(lpDDSTmp);
+		DDUnlockSurface(lpDDSDes);
+		DDUnlockSurface(lpDDSSrc);
+
+		// Release our temporary, source, and destination surfaces
+		lpDDSTmp->Release();
+		lpDDSTmp = NULL;
+		lpDDSSrc->Release();
+		lpDDSSrc = NULL;
+		lpDDSDes->Release();
+		lpDDSDes = NULL;
+	}
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Ok, the next fade we are going to want to perform is a fade from black to a surface.  Since all three fading methods use 
+the same basic algorithm, and given the fact that <i>PixelShade[0]</i> would be black for any color, in each iteration we're 
+simply going to fill the screen with that level pixel color until we hit <i>PixelShade[31]</i> which will be the desired image 
+at full color.
+
+<P>Here's the code:
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	/*
+	 * FadeToSurface:
+	 *    Fades into a surface from black
+	 */
+	void FadeToSurface(LPDIRECTDRAWSURFACE lpDDS)
+	{
+		int c;                 // counter variable
+		long i;                // incrementing variable
+		WORD *tmp, *ref, *prm;
+		WORD *fasttmp, *fastref;       // temporary and destination surface mem pointers
+		RECT SrcRect, DesRect; // Source and destination rectangles
+		int tpitch, rpitch, ppitch;    // temporary and destination surface pitch
+		WORD *shade;
+	
+		// Set the source and destination rectangles to the size of the screen
+		SetRect(&SrcRect, 0, 0, 640, 480);
+		SetRect(&DesRect, 0, 0, 640, 480);
+
+		// Create the surfaces
+		lpDDSTmp = DDCreateSurface(640, 480, DDSCAPS_SYSTEMMEMORY); // the temporary surface
+		lpDDSRef = DDCreateSurface(640, 480, DDSCAPS_SYSTEMMEMORY); // the temporary surface
+		lpDDSRef->Blt(&DesRect, lpDDS, &SrcRect, DDBLT_WAIT, NULL); // blit the desired surface into our destination surface
+
+		// Lock our surfaces temporary, and destination
+		tmp = DDLockSurface(lpDDSTmp, &tpitch);
+		prm = DDLockSurface(lpDDSPrimary, &ppitch);
+		ref = DDLockSurface(lpDDSRef, &rpitch);
+
+		// This can be changed, but it worx out nice to do 10 iterations
+		for(c=1;c&lt;=30;c++)
+		{
+			// get pointer indexed to the start of the current shade level
+			shade = PixelShade[c];
+
+			// "reset" our *fast* surface pointers
+			fasttmp = tmp;
+			fastref = ref;
+
+			// for every pixel on the screen (640*480=307200)
+			for(i=0;i&lt;307200;i++,fasttmp++,fastref++)
+			{
+				// new pixel please.....
+				*fasttmp = shade[*fastref];
+			}
+
+			// copy the temp surface to the primary surface
+			// (640*480) = 307200 (words) * 2 = 614400 (bytes)
+	   		systovid_memcpy(prm, tmp, 614400);
+		}
+
+		// unlock the temporary surface and destination surface
+		DDUnlockSurface(lpDDSTmp);
+		DDUnlockSurface(lpDDSPrimary);
+		DDUnlockSurface(lpDDSRef);
+
+		// blit the actual destination surface to the primary surface so we're sure
+		// the screen is where it should be
+		lpDDSPrimary->Blt(&DesRect, lpDDS, &SrcRect, DDBLT_WAIT, NULL);
+
+		// release the temporary and destination surfaces
+		lpDDSTmp->Release();
+		lpDDSTmp = NULL;
+		lpDDSRef->Release();
+		lpDDSRef = NULL;
+	}
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>And the final fade we're going to perform is the classic fade to black.  What we want is to have a desired initial image 
+already on the screen and simply do the opposite of what we did with the <i>FadeToSurface()</i>, starting with <i>PixelShade[31]</i> 
+and ending with <i>PixelShade[0]</i>.
+
+<p>Again, here's the implementation:
+
+<BLOCKQUOTE>
+<PRE><FONT SIZE=2 COLOR=RED>
+	/*
+	 * FadeToBlack:
+	 *		Fades a screen to black
+	 */
+	void FadeToBlack(void)
+	{
+		RECT SrcRect, DesRect; // Source and Destination Rectangles
+		WORD *tmp;             // temporary surface memory pointer
+		WORD *ref;
+		WORD *prm;
+		WORD *fastref, *fasttmp;
+		int c, tpitch, rpitch, ppitch;         // incrementing variable, temporary surface pitch
+		long i;                // another incrementing variable
+		WORD *shade;
+
+		// Set source and destination rectangles to size of screen
+		SetRect(&SrcRect, 0, 0, 640, 480);
+		SetRect(&DesRect, 0, 0, 640, 480);
+
+		// Create our temporary surface
+		lpDDSTmp = DDCreateSurface(640, 480, DDSCAPS_SYSTEMMEMORY);
+		lpDDSRef = DDCreateSurface(640, 480, DDSCAPS_SYSTEMMEMORY);
+
+		// Blit our primary surface into our temporary SYSTEM MEMORY surface
+		lpDDSRef->Blt(&DesRect, lpDDSPrimary, &SrcRect, DDBLT_WAIT, NULL);
+
+		// Lock our temporary surface
+		tmp = DDLockSurface(lpDDSTmp, &tpitch);
+		ref = DDLockSurface(lpDDSRef, &rpitch);
+		prm = DDLockSurface(lpDDSPrimary, &ppitch);
+
+		for(c=30;c>=1;c--)
+		{
+			// get a pointer indexed to the start of the current shade level
+			shade = PixelShade[c];
+
+			// "reset" our *fast* surface pointers
+			fastref = ref;
+			fasttmp = tmp;
+
+			// for every pixel on the screen (640*480=307200)
+			for(i=0;i&lt;307200;i++,fasttmp++,fastref++)
+			{
+				// new pixel please....
+				*fasttmp = shade[*fastref];
+			}
+
+			// copy the temp surface to the primary surface
+			// (640*480) = 307200 (words) * 2 = 614400 (bytes)
+	   		systovid_memcpy(prm, tmp, 614400);
+		}
+
+		// unlock our temporary surface
+		DDUnlockSurface(lpDDSTmp);
+		DDUnlockSurface(lpDDSRef);
+		DDUnlockSurface(lpDDSPrimary);
+
+		// just to make sure the screen is black when this routine is over, fill it with 0
+		DDFillSurface(lpDDSPrimary,0);
+
+		// release our temporary surface
+		lpDDSTmp->Release();
+		lpDDSTmp = NULL;
+		lpDDSRef->Release();
+		lpDDSRef = NULL;
+	}
+</FONT></PRE>
+</BLOCKQUOTE>
+
+<P>Before I offer the download to the demo application, just a couple things to keep in mind.  It's obvious that you should 
+never attempt to do pixel manipulations directly on the primary (Video Memory) surface.  That's the reason for the creation of 
+system memory surfaces and then the copying of the working surfaces into them in each of the three functions.  After that, you 
+can do all the pixel manipulations you want and then blast it into the primary surface with a memcpy.  The functions also attempt 
+to minimize surface locking, another potential slowdown.  But, as always, nothing is every "optimized" as new ways to speed 
+things up can always be found...
+
+<H4 ALIGN=CENTER>Download: <A HREF="ddfade.zip">ddfade.zip (Executable, Source C++)</A></H4>
+
+<!--Bottom Navigation-->
+<A NAME="bottom"></A>
+<!--End Bottom Navigation-->
+</STRONG>
+</FONT>
+<!--End Body-->
+<!--Bottom-->
+<BR>
+<IMG SRC="gradbar.jpg">
+<BR>
+<FONT SIZE=2 COLOR=#8B8B8B FACE=Helvetica>
+<I><font color="#FBFBFB">T</font><font color="#F7F7F7">h</font><font color="#F3F3F3">e</font><font color="#EFEFEF"> </font><font color="#EBEBEB">G</font><font color="#E7E7E7">a</font><font color="#E3E3E3">m</font><font color="#DFDFDF">e</font><font color="#DBDBDB"> </font><font color="#D7D7D7">P</font><font color="#D3D3D3">r</font><font color="#CFCFCF">o</font><font color="#CBCBCB">g</font><font color="#C7C7C7">r</font><font color="#C3C3C3">a</font><font color="#BFBFBF">m</font><font color="#BBBBBB">m</font><font color="#B7B7B7">i</font><font color="#B3B3B3">n</font><font color="#AFAFAF">g</font><font color="#ABABAB"> </font><font color="#A7A7A7">M</font><font color="#A3A3A3">e</font><font color="#9F9F9F">g</font><font color="#9B9B9B">a</font><font color="#979797">S</font><font color="#939393">i</font><font color="#8F8F8F">t</font><font color="#8B8B8B">e</font> - ©1996-<SCRIPT LANGUAGE="JavaScript">
+<!--
+myDate = new Date;
+if(myDate.getYear() < 100)
+{
+	printdate = (myDate.getYear() + 1900);
+	document.write(printdate);
+}
+else
+{
+	printdate = myDate.getYear();
+	document.write(printdate);
+}
+-->
+</SCRIPT> <A HREF="mailto:GPMega@perplexed.com" TARGET="CONTENT">Matt Reiferson</A>.
+</I>
+</FONT>
+<!--End Bottom-->
+<!--Footer-->
+</BODY>
+</HTML>
+<!--End Footer-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
